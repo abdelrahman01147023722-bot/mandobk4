@@ -207,7 +207,17 @@
             }
         };
 
-        function initFlatpickr() { flatpickr("#rEnd, #iEnd", { locale: "ar", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", allowInput: true, disableMobile: true }); }
+        function initFlatpickr() { 
+            // تفعيل الكتابة اليدوية للتاريخ بجانب التقويم
+            flatpickr("#rEnd, #iEnd", { 
+                locale: "ar", 
+                dateFormat: "Y-m-d", 
+                altInput: true, 
+                altFormat: "d/m/Y", 
+                allowInput: true, 
+                disableMobile: true 
+            }); 
+        }
         
         window.updateDashText = async (type, val) => {
             if(type === 'start') dashConfig.manualStart = val.trim(); if(type === 'end') dashConfig.manualEnd = val.trim();
@@ -292,6 +302,11 @@
                 insuranceEnd: document.getElementById('iEnd').value, createdAt: new Date().toISOString() 
             };
             if (!data.workerName) return Swal.fire('تنبيه', 'لا يمكن حفظ سجل بدون اسم العامل', 'warning');
+            
+            // حماية التكرار
+            const isDuplicate = workers.some(w => w.workerName.trim() === data.workerName && w.sponsorName.trim() === data.sponsorName);
+            if (isDuplicate) return Swal.fire('تنبيه', 'هذا العامل مسجل مسبقاً تحت نفس الكفيل!', 'warning');
+
             Swal.fire({ title: 'جاري الحفظ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try { 
                 await window.addDoc(window.collection(window.db, 'workers'), data); 
@@ -328,7 +343,7 @@
         window.renewDocument = async (workerId, type) => {
             const worker = workers.find(w => w.id === workerId); const typeLabel = type === 'residency' ? 'الإقامة' : 'التأمين';
             const { value: newDate } = await Swal.fire({
-                title: `تجديد وثيقة (${typeLabel})`, html: `<p class="mb-4 text-sm text-slate-600 font-bold">للعامل: <span class="text-[#8B0000]">${worker.workerName}</span></p><input id="renew-date" class="swal2-input bg-slate-50 border-2" placeholder="اختر التاريخ الجديد">`,
+                title: `تجديد وثيقة (${typeLabel})`, html: `<p class="mb-4 text-sm text-slate-600 font-bold">للعامل: <span class="text-[#8B0000]">${worker.workerName}</span></p><input id="renew-date" class="swal2-input bg-slate-50 border-2" placeholder="يوم/شهر/سنة">`,
                 didOpen: () => { flatpickr("#renew-date", { locale: "ar", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", allowInput: true, disableMobile: true }); },
                 showCancelButton: true, confirmButtonText: 'اعتماد التجديد', cancelButtonText: 'إلغاء', confirmButtonColor: '#25D366',
                 preConfirm: () => { const v = document.getElementById('renew-date').value; if(!v) Swal.showValidationMessage('مطلوب'); return v; }
@@ -352,12 +367,74 @@
             window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`, '_blank');
         };
 
-        // ================= UI RENDERING =================
+        // ================= UI RENDERING & DASHBOARD =================
         window.resetDashboard = async () => {
             Swal.fire({ title: 'تأكيد تصفير الدورة؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#8B0000', confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'
             }).then(async (result) => {
                 if (result.isConfirmed) { dashConfig.resetTimestamp = new Date().toISOString(); dashConfig.manualStart = ""; dashConfig.manualEnd = ""; try { await window.setDoc(window.doc(window.db, 'config', 'dashboard'), dashConfig); } catch(e){} }
             });
+        };
+
+        window.printDashboard = () => {
+            const rTime = dashConfig.resetTimestamp || new Date(new Date().setDate(new Date().getDate() - 30)).toISOString();
+            const addedInPeriod = workers.filter(w => w.createdAt && w.createdAt >= rTime).length;
+            const renewedLog = renewals.filter(r => r.renewDate && r.renewDate >= rTime); const totalRenewed = renewedLog.length;
+            let pct = addedInPeriod > 0 ? Math.min(100, Math.round((totalRenewed / addedInPeriod) * 100)) : 0;
+
+            let tableRows = renewedLog.length > 0 ? [...renewedLog].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map((r, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${r.workerName || '---'}</td>
+                    <td>${r.sponsorName || '---'}</td>
+                    <td>${r.type || '---'}</td>
+                    <td dir="ltr">${formatDateDDMMYYYY(r.renewDate)}</td>
+                </tr>
+            `).join('') : `<tr><td colspan="5" style="text-align:center;">لا توجد عمليات تجديد مسجلة</td></tr>`;
+
+            const printContent = `
+                <html dir="rtl" lang="ar">
+                <head>
+                    <title>تقرير الإنجازات - مكتب مندوبك</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+                        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #8B0000; padding-bottom: 20px; }
+                        .header h1 { color: #8B0000; margin: 0 0 10px 0; font-size: 28px; }
+                        .header p { margin: 0; color: #666; font-size: 14px; }
+                        .stats-grid { display: flex; justify-content: space-between; margin-bottom: 40px; gap: 20px; }
+                        .stat-box { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; }
+                        .stat-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: normal; }
+                        .stat-box .val { font-size: 28px; font-weight: bold; color: #0f172a; margin: 0; }
+                        .stat-box .val.green { color: #16a34a; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
+                        th { background-color: #f1f5f9; color: #334155; font-weight: bold; }
+                        tr:nth-child(even) { background-color: #f8fafc; }
+                        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📊 تقرير لوحة الإنجازات</h1>
+                        <p>مركز مندوبك - برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
+                        <p>تاريخ استخراج التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box"><h3>سجلات مسجلة حديثاً</h3><p class="val">${addedInPeriod}</p></div>
+                        <div class="stat-box"><h3>سجلات تم تجديدها</h3><p class="val green">${totalRenewed}</p></div>
+                        <div class="stat-box"><h3>نسبة الإنجاز</h3><p class="val">${pct}%</p></div>
+                    </div>
+                    <h3 style="color: #334155; margin-bottom: 15px;">سجل التجديدات الأخيرة:</h3>
+                    <table>
+                        <thead><tr><th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">نوع الوثيقة</th><th width="20%">تاريخ التجديد بالنظام</th></tr></thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                    <div class="footer">تم إنشاء هذا التقرير آلياً بواسطة نظام "مركز مندوبك"</div>
+                </body>
+                </html>
+            `;
+            const printWin = window.open('', '', 'width=900,height=700');
+            printWin.document.open(); printWin.document.write(printContent); printWin.document.close();
+            printWin.focus(); setTimeout(() => { printWin.print(); printWin.close(); }, 500);
         };
 
         function renderDashboard() {
@@ -386,7 +463,10 @@
                     <div class="p-5 border-t border-white/10 bg-black/10 flex flex-col gap-4">
                         <div class="flex flex-wrap gap-2 justify-between items-center">
                             <div class="flex gap-2"><input type="text" value="${dashConfig.manualStart || ''}" onchange="updateDashText('start', this.value)" placeholder="من تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"><input type="text" value="${dashConfig.manualEnd || ''}" onchange="updateDashText('end', this.value)" placeholder="إلى تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"></div>
-                            <button onclick="resetDashboard()" class="bg-red-600/20 text-red-200 hover:bg-red-600 px-4 py-2 rounded-xl text-[11px] font-black transition">تصفير العداد</button>
+                            <div class="flex gap-2">
+                                <button onclick="printDashboard()" class="bg-slate-600/20 text-slate-200 hover:bg-slate-600 hover:text-white px-4 py-2 rounded-xl text-[11px] font-black transition border border-slate-500/30">طباعة التقرير 🖨️</button>
+                                <button onclick="resetDashboard()" class="bg-red-600/20 text-red-200 hover:bg-red-600 px-4 py-2 rounded-xl text-[11px] font-black transition border border-red-500/30">تصفير العداد</button>
+                            </div>
                         </div>
                         <div class="bg-black/30 rounded-xl p-3 mt-2 max-h-40 overflow-y-auto custom-scrollbar space-y-2">${logHtml}</div>
                     </div>
@@ -455,35 +535,105 @@
             } catch (error) {}
         }
 
-        // ================= AI OCR =================
+        // ================= AI OCR & FILE HANDLING =================
+        window.handleImageFile = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            processImageForAI(file);
+        };
+
         window.handlePaste = async (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let item of items) { 
                 if (item.type.indexOf("image") !== -1) { 
-                    e.preventDefault(); const blob = item.getAsFile(); const dropZone = document.getElementById('drop-zone');
-                    if (!apiKey || apiKey.trim() === "") return Swal.fire('تنبيه', 'يرجى إدخال مفتاح الذكاء الاصطناعي من الإعدادات ⚙️', 'warning');
-                    try {
-                        const base64Data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
-                        dropZone.innerHTML = `<div class="py-6 text-center text-sm font-black text-blue-600 animate-pulse">يتم استخراج البيانات بالذكاء الاصطناعي... ⚡</div>`;
-                        const payload = { contents: [{ role: "user", parts: [{ text: `استخرج البيانات من الصورة ورجعها كـ JSON Array فقط فيه: workerName, nationality, profession, residencyEnd (YYYY-MM-DD), insuranceEnd (YYYY-MM-DD).` }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
-                        
-                        const apiRes = await fetchFromGemini(apiKey, payload);
-                        if (!apiRes.success) throw new Error(apiRes.error);
-                        const result = apiRes.result;
-                        
-                        let dataArray = JSON.parse(result.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim());
-                        if (!Array.isArray(dataArray)) dataArray = [dataArray];
-                        if (dataArray.length === 1) {
-                            const d = dataArray[0];
-                            if(d.workerName) document.getElementById('wName').value = d.workerName; if(d.nationality) document.getElementById('wNationality').value = d.nationality; if(d.profession) document.getElementById('wProfession').value = d.profession;
-                            if(d.residencyEnd && d.residencyEnd!=='غير محدد') document.getElementById('rEnd')._flatpickr.setDate(d.residencyEnd); if(d.insuranceEnd && d.insuranceEnd!=='غير محدد') document.getElementById('iEnd')._flatpickr.setDate(d.insuranceEnd);
-                            dropZone.innerHTML = `<div class="py-6 text-center text-green-600 font-bold">تم تفريغ الهوية بنجاح ✨</div>`;
-                        } else { Swal.fire('نجاح', `تم استخراج عدة هويات.`, 'success'); dropZone.innerHTML = `<div class="py-6 text-center text-blue-600 font-bold">تم قراءة عدة هويات ✨</div>`; }
-                    } catch (err) { Swal.fire('خطأ في الاستخراج', 'تعذر قراءة الصورة.', 'error'); dropZone.innerHTML = `<div class="py-6 text-center text-red-600 font-bold">فشل الاستخراج</div>`; }
-                    setTimeout(() => dropZone.innerHTML = `<div class="text-3xl mb-1">📷</div><p class="text-[13px] font-black text-slate-700">اضغط (Ctrl+V) لصق الهوية هنا</p><p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي بالذكاء الاصطناعي</p>`, 4000);
+                    e.preventDefault(); 
+                    const file = item.getAsFile(); 
+                    processImageForAI(file);
+                    break;
                 } 
             }
         };
+
+        async function processImageForAI(blob) {
+            const dropZone = document.getElementById('drop-zone');
+            if (!apiKey || apiKey.trim() === "") return Swal.fire('تنبيه', 'يرجى إدخال مفتاح الذكاء الاصطناعي من الإعدادات ⚙️', 'warning');
+            
+            try {
+                const base64Data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
+                dropZone.innerHTML = `<div class="py-6 text-center text-sm font-black text-blue-600 animate-pulse">يتم استخراج البيانات بالذكاء الاصطناعي... ⚡</div>`;
+                const payload = { contents: [{ role: "user", parts: [{ text: `استخرج البيانات من الصورة ورجعها كـ JSON Array فقط فيه: workerName, nationality, profession, residencyEnd (YYYY-MM-DD), insuranceEnd (YYYY-MM-DD).` }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
+                
+                const apiRes = await fetchFromGemini(apiKey, payload);
+                if (!apiRes.success) throw new Error(apiRes.error);
+                const result = apiRes.result;
+                
+                let dataArray = JSON.parse(result.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim());
+                if (!Array.isArray(dataArray)) dataArray = [dataArray];
+                
+                if (dataArray.length === 1) {
+                    const d = dataArray[0];
+                    if(d.workerName) document.getElementById('wName').value = d.workerName; if(d.nationality) document.getElementById('wNationality').value = d.nationality; if(d.profession) document.getElementById('wProfession').value = d.profession;
+                    if(d.residencyEnd && d.residencyEnd!=='غير محدد') document.getElementById('rEnd')._flatpickr.setDate(d.residencyEnd); if(d.insuranceEnd && d.insuranceEnd!=='غير محدد') document.getElementById('iEnd')._flatpickr.setDate(d.insuranceEnd);
+                    dropZone.innerHTML = `<div class="py-6 text-center text-green-600 font-bold">تم تفريغ الهوية بنجاح ✨</div>`;
+                } else if (dataArray.length > 1) {
+                    // معالجة القراءة المتعددة (النافذة المنبثقة وحفظ المجموعات)
+                    dropZone.innerHTML = `<div class="py-6 text-center text-blue-600 font-bold">تم استخراج ${dataArray.length} هويات ✨</div>`;
+                    
+                    const { value: batchData } = await Swal.fire({
+                        title: `تم استخراج ${dataArray.length} هويات`,
+                        html: `
+                            <div class="mb-4">
+                                <input id="batch-sName" placeholder="اسم الكفيل (سيطُبق على جميع العمال)" class="w-full border-2 border-slate-300 p-2.5 rounded-xl mb-2 text-sm text-right bg-white outline-none">
+                                <input id="batch-sPhone" placeholder="رقم هاتف الكفيل" dir="ltr" class="w-full border-2 border-slate-300 p-2.5 rounded-xl text-sm text-right bg-white outline-none">
+                            </div>
+                            <div class="max-h-48 overflow-y-auto text-right text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                ${dataArray.map((w, i) => `
+                                    <div class="border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">
+                                        <b class="text-[#8B0000]">${i+1}. ${w.workerName || 'بدون اسم'}</b><br>
+                                        المهنة: ${w.profession || '-'} | الإقامة: <span dir="ltr">${w.residencyEnd || '-'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `,
+                        focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ جميع السجلات', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
+                        preConfirm: () => {
+                            return { sponsorName: document.getElementById('batch-sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('batch-sPhone').value.trim() }
+                        }
+                    });
+
+                    if (batchData) {
+                        Swal.fire({ title: 'جاري الحفظ الجماعي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        const batch = window.writeBatch(window.db);
+                        let addedCount = 0;
+                        for(let w of dataArray) {
+                            if(!w.workerName) continue;
+                            
+                            // حماية التكرار في الحفظ الجماعي
+                            if(workers.some(existing => existing.workerName.trim() === w.workerName.trim() && existing.sponsorName.trim() === batchData.sponsorName.trim())) continue;
+                            
+                            const ref = window.doc(window.collection(window.db, 'workers'));
+                            batch.set(ref, {
+                                sponsorName: batchData.sponsorName, sponsorPhone: batchData.sponsorPhone,
+                                workerName: w.workerName, nationality: w.nationality || '', profession: w.profession || '',
+                                residencyEnd: w.residencyEnd && w.residencyEnd !== 'غير محدد' ? w.residencyEnd : '',
+                                insuranceEnd: w.insuranceEnd && w.insuranceEnd !== 'غير محدد' ? w.insuranceEnd : '',
+                                createdAt: new Date().toISOString()
+                            });
+                            addedCount++;
+                        }
+                        await batch.commit();
+                        Swal.fire('نجاح', `تم إضافة ${addedCount} سجلات بنجاح. (تم تجاهل الأسماء المكررة إن وجدت)`, 'success');
+                    }
+                }
+            } catch (err) { Swal.fire('خطأ في الاستخراج', 'تعذر قراءة الصورة.', 'error'); dropZone.innerHTML = `<div class="py-6 text-center text-red-600 font-bold">فشل الاستخراج</div>`; }
+            
+            setTimeout(() => dropZone.innerHTML = `
+                <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="handleImageFile(event)">
+                <div class="text-3xl mb-1">📷</div>
+                <p class="text-[13px] font-black text-slate-700">اضغط هنا أو (Ctrl+V) لإدراج صورة الهوية</p>
+                <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي بالذكاء الاصطناعي</p>
+            `, 4000);
+        }
 
         window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); renderListsOnly(); };
         window.login = () => { if (document.getElementById('pass').value === 'a1989') { isAuth = true; render(); startDataListeners(); } else { Swal.fire('الوصول مرفوض', 'كلمة المرور غير صحيحة', 'error'); } };
@@ -547,9 +697,10 @@
                         <div class="xl:col-span-4">
                             <div class="bg-white p-6 rounded-[2rem] sticky top-6 shadow-2xl">
                                 <h3 class="text-xl font-black mb-6 text-slate-800 flex items-center gap-2">➕ تقييد سجل جديد</h3>
-                                <div id="drop-zone" onpaste="handlePaste(event)" class="bg-[#f8fafc] border-2 border-dashed border-slate-400 rounded-2xl p-6 text-center cursor-pointer mb-6 hover:bg-slate-50 transition">
+                                <div id="drop-zone" onclick="document.getElementById('aiImageUpload').click()" onpaste="handlePaste(event)" class="bg-[#f8fafc] border-2 border-dashed border-slate-400 rounded-2xl p-6 text-center cursor-pointer mb-6 hover:bg-slate-50 transition relative">
+                                    <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="handleImageFile(event)">
                                     <div class="text-3xl mb-1">📷</div>
-                                    <p class="text-[13px] font-black text-slate-700">اضغط (Ctrl+V) لصق الهوية هنا</p>
+                                    <p class="text-[13px] font-black text-slate-700">اضغط هنا أو (Ctrl+V) لإدراج صورة الهوية</p>
                                     <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي بالذكاء الاصطناعي</p>
                                 </div>
                                 <div class="space-y-4">
@@ -559,8 +710,8 @@
                                     <input id="wName" placeholder="الاسم الكامل للعامل" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none">
                                     <div class="flex gap-3"><input id="wNationality" placeholder="الجنسية" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"><input id="wProfession" placeholder="المهنة" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"></div>
                                     <div class="flex gap-3 bg-[#f8fafc] p-4 rounded-xl border border-slate-200 mt-2">
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="اختر التاريخ"></div>
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين</label><input type="text" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="اختر التاريخ"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="يوم/شهر/سنة"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين</label><input type="text" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="يوم/شهر/سنة"></div>
                                     </div>
                                 </div>
                                 <button onclick="saveWorker()" class="w-full mt-6 py-4 bg-gradient-to-l from-[#8B0000] to-[#600000] text-white rounded-xl font-black shadow-lg hover:scale-[1.02] transition-transform text-sm">اعتماد وحفظ السجل</button>
