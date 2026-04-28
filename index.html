@@ -207,11 +207,10 @@
         };
 
         function initFlatpickr() { 
+            // تم إزالة altInput لضمان إمكانية الكتابة باليد (Manual Entry) بكل سهولة
             flatpickr("#rEnd, #iEnd", { 
                 locale: "ar", 
                 dateFormat: "Y-m-d", 
-                altInput: true, 
-                altFormat: "d/m/Y", 
                 allowInput: true, 
                 disableMobile: true 
             }); 
@@ -248,14 +247,14 @@
             if (workers.length === 0) return Swal.fire("تنبيه", "السجلات فارغة", "info");
             const dataToExport = [...workers].sort((a,b)=>(a.sponsorName||'').localeCompare(b.sponsorName||'','ar')).map((w, i) => ({
                 "م": i + 1, "اسم الكفيل": w.sponsorName || 'بدون كفيل', "رقم هاتف الكفيل": w.sponsorPhone || '---',
-                "اسم العامل (عربي)": w.workerName || '---', "اسم العامل (إنجليزي)": w.workerNameEn || '---',
+                "اسم العامل": w.workerName || '---',
                 "الجنسية": w.nationality || '---', "المهنة": w.profession || '---',
                 "تاريخ إنتهاء الإقامة": formatDateDDMMYYYY(w.residencyEnd), "تاريخ إنتهاء التأمين": formatDateDDMMYYYY(w.insuranceEnd),
                 "تاريخ الإضافة بالنظام": w.createdAt ? formatDateDDMMYYYY(w.createdAt.split('T')[0]) : '---'
             }));
             const ws = XLSX.utils.json_to_sheet(dataToExport);
             if(!ws['!views']) ws['!views'] = []; ws['!views'].push({ rightToLeft: true });
-            ws['!cols'] = [ {wch: 5}, {wch: 25}, {wch: 15}, {wch: 25}, {wch: 25}, {wch: 15}, {wch: 20}, {wch: 18}, {wch: 18}, {wch: 18} ];
+            ws['!cols'] = [ {wch: 5}, {wch: 25}, {wch: 15}, {wch: 30}, {wch: 15}, {wch: 20}, {wch: 18}, {wch: 18}, {wch: 18} ];
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "السجل الرئيسي");
             XLSX.writeFile(wb, `نسخة_احتياطية_مندوبك_${new Date().toISOString().split('T')[0]}.xlsx`);
         };
@@ -272,7 +271,8 @@
 
                     const batch = window.writeBatch(window.db); let importedCount = 0;
                     for (const row of jsonData) {
-                        if(!row["اسم العامل (عربي)"] || row["اسم العامل (عربي)"] === '---') continue;
+                        const excelName = row["اسم العامل"] || row["اسم العامل (عربي)"];
+                        if(!excelName || excelName === '---') continue;
                         const parseExcelDate = (dStr) => {
                             if(!dStr || dStr === '---') return ''; const p = dStr.split('/'); return p.length===3 ? `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}` : '';
                         };
@@ -280,11 +280,10 @@
                         batch.set(newWorkerRef, {
                             sponsorName: row["اسم الكفيل"] !== '---' ? row["اسم الكفيل"] : 'بدون كفيل',
                             sponsorPhone: row["رقم هاتف الكفيل"] !== '---' ? row["رقم هاتف الكفيل"].toString() : '',
-                            workerName: row["اسم العامل (عربي)"], 
-                            workerNameEn: row["اسم العامل (إنجليزي)"] && row["اسم العامل (إنجليزي)"] !== '---' ? row["اسم العامل (إنجليزي)"] : '',
+                            workerName: excelName, 
                             nationality: row["الجنسية"] !== '---' ? row["الجنسية"] : '',
                             profession: row["المهنة"] !== '---' ? row["المهنة"] : '', residencyEnd: parseExcelDate(row["تاريخ إنتهاء الإقامة"]),
-                            insuranceEnd: parseExcelDate(row["تاريخ إنتهاء التأمين"]), createdAt: new Date().toISOString() 
+                            insuranceEnd: parseExcelDate(row["تاريخ إنتهاء التأمين"]), createdAt: new Date().toISOString(), contacted: false 
                         }); importedCount++;
                     }
                     await batch.commit(); Swal.fire('تم بنجاح!', `تم رفع ${importedCount} سجل إلى السحابة.`, 'success');
@@ -298,19 +297,16 @@
         window.saveWorker = async () => {
             const data = {
                 sponsorName: document.getElementById('sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('sPhone').value.trim(),
-                workerName: document.getElementById('wNameAr').value.trim(), 
-                workerNameEn: document.getElementById('wNameEn').value.trim(), 
+                workerName: document.getElementById('wName').value.trim(), 
                 nationality: document.getElementById('wNationality').value.trim(),
                 profession: document.getElementById('wProfession').value.trim(), residencyEnd: document.getElementById('rEnd').value,
-                insuranceEnd: document.getElementById('iEnd').value, createdAt: new Date().toISOString() 
+                insuranceEnd: document.getElementById('iEnd').value, createdAt: new Date().toISOString(), contacted: false 
             };
             
-            if (!data.workerName && !data.workerNameEn) return Swal.fire('تنبيه', 'يجب إدخال اسم العامل (عربي أو إنجليزي على الأقل)', 'warning');
+            if (!data.workerName) return Swal.fire('تنبيه', 'يجب إدخال اسم العامل', 'warning');
             
             const isDuplicate = workers.some(w => {
-                const nameArMatch = data.workerName && w.workerName && w.workerName.trim() === data.workerName.trim();
-                const nameEnMatch = data.workerNameEn && w.workerNameEn && w.workerNameEn.trim().toLowerCase() === data.workerNameEn.trim().toLowerCase();
-                return (nameArMatch || nameEnMatch) && w.sponsorName.trim() === data.sponsorName;
+                return w.workerName && w.workerName.trim().toLowerCase() === data.workerName.toLowerCase() && w.sponsorName.trim() === data.sponsorName;
             });
 
             if (isDuplicate) return Swal.fire('تنبيه', 'هذا العامل مسجل مسبقاً تحت نفس الكفيل!', 'warning');
@@ -319,10 +315,10 @@
             try { 
                 await window.addDoc(window.collection(window.db, 'workers'), data); 
                 Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تقييد السجل سحابياً', showConfirmButton:false, timer:2000});
-                ['wNameAr', 'wNameEn', 'wNationality', 'wProfession'].forEach(id => document.getElementById(id).value = ''); 
+                ['wName', 'wNationality', 'wProfession'].forEach(id => document.getElementById(id).value = ''); 
                 if(document.getElementById('rEnd')._flatpickr) document.getElementById('rEnd')._flatpickr.clear();
                 if(document.getElementById('iEnd')._flatpickr) document.getElementById('iEnd')._flatpickr.clear();
-                document.getElementById('wNameAr').focus();
+                document.getElementById('wName').focus();
             } catch(e) { Swal.fire('خطأ', 'تعذر الحفظ.', 'error'); }
         };
 
@@ -333,6 +329,33 @@
             });
         };
 
+        window.deleteSponsor = (event, sponsorName) => {
+            event.stopPropagation(); 
+            Swal.fire({
+                title: 'حذف الكفيل نهائياً',
+                html: `سيتم حذف الكفيل <b class="text-red-600">${sponsorName}</b> وجميع العمال التابعين له نهائياً ولا يمكن التراجع!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'نعم، إبادة الكل 🗑️',
+                cancelButtonText: 'إلغاء الأمر'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        Swal.fire({ title: 'جاري الحذف الشامل...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        const batch = window.writeBatch(window.db);
+                        const workersToDelete = workers.filter(w => w.sponsorName === sponsorName);
+                        workersToDelete.forEach(w => {
+                            const ref = window.doc(window.db, 'workers', w.id);
+                            batch.delete(ref);
+                        });
+                        await batch.commit();
+                        Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم إبادة الكفيل وعماله', showConfirmButton:false, timer:2000});
+                    } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
+                }
+            });
+        };
+
         window.editWorker = async (workerId) => {
             const worker = workers.find(w => w.id === workerId); if(!worker) return;
             const { value: formValues } = await Swal.fire({
@@ -340,25 +363,22 @@
                 html: `<div class="text-right space-y-3 p-2">
                         <input id="edit-sName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="اسم الكفيل" value="${worker.sponsorName || ''}">
                         <input id="edit-sPhone" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="رقم الكفيل" value="${worker.sponsorPhone || ''}" dir="ltr">
-                        <div class="flex gap-2">
-                            <input id="edit-wNameAr" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 mt-2 outline-none text-right" placeholder="الاسم (عربي)" value="${worker.workerName || ''}">
-                            <input id="edit-wNameEn" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 mt-2 outline-none font-mono text-left" dir="ltr" placeholder="الاسم (English)" value="${worker.workerNameEn || ''}">
-                        </div>
+                        <input id="edit-wName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 mt-2 outline-none" placeholder="الاسم (عربي أو English)" value="${worker.workerName || ''}">
                         <div class="flex gap-2">
                             <input id="edit-wNat" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="الجنسية" value="${worker.nationality || ''}">
                             <input id="edit-wProf" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="المهنة" value="${worker.profession || ''}">
                         </div>
                         <div class="flex gap-2 border-t pt-4 mt-3">
-                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ الإقامة</label><input id="edit-rEnd" type="text" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white" value="${worker.residencyEnd || ''}"></div>
-                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ التأمين</label><input id="edit-iEnd" type="text" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white" value="${worker.insuranceEnd || ''}"></div>
+                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ الإقامة</label><input id="edit-rEnd" type="text" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white" value="${worker.residencyEnd || ''}" placeholder="YYYY-MM-DD"></div>
+                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ التأمين</label><input id="edit-iEnd" type="text" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white" value="${worker.insuranceEnd || ''}" placeholder="YYYY-MM-DD"></div>
                         </div>
                     </div>`,
-                didOpen: () => { flatpickr("#edit-rEnd, #edit-iEnd", { locale: "ar", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", allowInput: true, disableMobile: true }); },
+                didOpen: () => { flatpickr("#edit-rEnd, #edit-iEnd", { locale: "ar", dateFormat: "Y-m-d", allowInput: true, disableMobile: true }); },
                 focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ التحديث', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
-                preConfirm: () => { return { sponsorName: document.getElementById('edit-sName').value.trim(), sponsorPhone: document.getElementById('edit-sPhone').value.trim(), workerName: document.getElementById('edit-wNameAr').value.trim(), workerNameEn: document.getElementById('edit-wNameEn').value.trim(), nationality: document.getElementById('edit-wNat').value.trim(), profession: document.getElementById('edit-wProf').value.trim(), residencyEnd: document.getElementById('edit-rEnd').value, insuranceEnd: document.getElementById('edit-iEnd').value } }
+                preConfirm: () => { return { sponsorName: document.getElementById('edit-sName').value.trim(), sponsorPhone: document.getElementById('edit-sPhone').value.trim(), workerName: document.getElementById('edit-wName').value.trim(), nationality: document.getElementById('edit-wNat').value.trim(), profession: document.getElementById('edit-wProf').value.trim(), residencyEnd: document.getElementById('edit-rEnd').value, insuranceEnd: document.getElementById('edit-iEnd').value } }
             });
             if (formValues) {
-                if(!formValues.workerName && !formValues.workerNameEn) return Swal.fire('خطأ', 'الاسم إلزامي', 'error');
+                if(!formValues.workerName) return Swal.fire('خطأ', 'الاسم إلزامي', 'error');
                 try { await window.updateDoc(window.doc(window.db, 'workers', worker.id), formValues); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التحديث', showConfirmButton:false, timer:1500}); } catch(e){ Swal.fire('خطأ', e.message, 'error'); } 
             }
         };
@@ -366,29 +386,37 @@
         window.renewDocument = async (workerId, type) => {
             const worker = workers.find(w => w.id === workerId); const typeLabel = type === 'residency' ? 'الإقامة' : 'التأمين';
             const { value: newDate } = await Swal.fire({
-                title: `تجديد وثيقة (${typeLabel})`, html: `<p class="mb-4 text-sm text-slate-600 font-bold">للعامل: <span class="text-[#8B0000]">${worker.workerName || worker.workerNameEn}</span></p><input id="renew-date" class="swal2-input bg-slate-50 border-2" placeholder="يوم/شهر/سنة">`,
-                didOpen: () => { flatpickr("#renew-date", { locale: "ar", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", allowInput: true, disableMobile: true }); },
+                title: `تجديد وثيقة (${typeLabel})`, html: `<p class="mb-4 text-sm text-slate-600 font-bold">للعامل: <span class="text-[#8B0000]">${worker.workerName || 'بدون اسم'}</span></p><input id="renew-date" class="swal2-input bg-slate-50 border-2" placeholder="YYYY-MM-DD اكتب أو اختر">`,
+                didOpen: () => { flatpickr("#renew-date", { locale: "ar", dateFormat: "Y-m-d", allowInput: true, disableMobile: true }); },
                 showCancelButton: true, confirmButtonText: 'اعتماد التجديد', cancelButtonText: 'إلغاء', confirmButtonColor: '#25D366',
-                preConfirm: () => { const v = document.getElementById('renew-date').value; if(!v) Swal.showValidationMessage('مطلوب'); return v; }
+                preConfirm: () => { const v = document.getElementById('renew-date').value; if(!v) Swal.showValidationMessage('مطلوب إدخال التاريخ'); return v; }
             });
             if (newDate) {
-                const renewalEvent = { workerId: worker.id, workerName: worker.workerName || worker.workerNameEn, sponsorName: worker.sponsorName, type: typeLabel, renewDate: new Date().toISOString() };
-                const updatedData = type === 'residency' ? { residencyEnd: newDate } : { insuranceEnd: newDate };
-                try { await window.updateDoc(window.doc(window.db, 'workers', worker.id), updatedData); await window.addDoc(window.collection(window.db, 'renewals'), renewalEvent); Swal.fire({toast:true, position:'top-end', icon:'success', title:`تم التجديد بنجاح`, showConfirmButton:false, timer:3000}); } catch(e){ Swal.fire('خطأ', e.message, 'error'); }
+                // إصلاح المشكلة: تم ضمان سحب اسم العامل بشكل صحيح ليظهر في كشف الإنجازات
+                const renewalEvent = { workerId: worker.id, workerName: worker.workerName || 'عامل', sponsorName: worker.sponsorName || 'بدون كفيل', type: typeLabel, renewDate: new Date().toISOString() };
+                const updatedData = type === 'residency' ? { residencyEnd: newDate, contacted: false } : { insuranceEnd: newDate, contacted: false };
+                try { 
+                    await window.updateDoc(window.doc(window.db, 'workers', worker.id), updatedData); 
+                    await window.addDoc(window.collection(window.db, 'renewals'), renewalEvent); 
+                    Swal.fire({toast:true, position:'top-end', icon:'success', title:`تم التجديد بنجاح وتسجيله في الإنجازات`, showConfirmButton:false, timer:3000}); 
+                } catch(e){ Swal.fire('خطأ', e.message, 'error'); }
             }
         };
 
         window.aiDraftMessage = (workerId) => {
             const w = workers.find(x => x.id === workerId); let p = (w.sponsorPhone || "").replace(/\D/g,'');
             if (p.startsWith('0')) p = p.substring(1); if (p && !p.startsWith('971')) p = '971' + p; if(!p) return Swal.fire('تنبيه', 'لا يوجد رقم', 'warning');
+            
+            window.updateDoc(window.doc(window.db, 'workers', workerId), { contacted: true }).catch(e=>{});
+
             const rDays = getDaysDiff(w.residencyEnd); const iDays = getDaysDiff(w.insuranceEnd);
             let expType = "", expDate = "";
             if (rDays <= 7 && iDays <= 7) { expType = "الإقامة والتأمين"; expDate = `${formatDateDDMMYYYY(w.residencyEnd)} و ${formatDateDDMMYYYY(w.insuranceEnd)}`; }
             else if (rDays <= 7) { expType = "الإقامة"; expDate = formatDateDDMMYYYY(w.residencyEnd); } else if (iDays <= 7) { expType = "التأمين"; expDate = formatDateDDMMYYYY(w.insuranceEnd); }
             const safeProf = w.profession && w.profession !== 'غير محدد' ? w.profession : 'غير محدد';
             const safeNat = w.nationality && w.nationality !== 'غير محدد' ? w.nationality : 'غير محدد';
-            const displayName = w.workerName || w.workerNameEn || 'العامل';
-            const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${displayName} – المهنة ${safeProf}  – الجنسية ${safeNat} ، تنتهي بتاريخ ${expDate} (${expType}).\nوفي حال كان العامل لا يزال على كفالتكم، نرجو منكم التواصل  لاتخاذ إجراءات التجديد في أقرب وقت. ***\nمركز مندوبك | لتخليص المعاملات`;
+            
+            const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${w.workerName} – المهنة ${safeProf}  – الجنسية ${safeNat} ، تنتهي بتاريخ ${expDate} (${expType}).\nوفي حال كان العامل لا يزال على كفالتكم، نرجو منكم التواصل  لاتخاذ إجراءات التجديد في أقرب وقت. ***\nمركز مندوبك | لتخليص المعاملات`;
             window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`, '_blank');
         };
 
@@ -508,8 +536,7 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-slate-200/80 gap-3">
                         <div class="flex flex-wrap items-center gap-2">
                             <div>
-                                <h5 class="text-sm font-black text-slate-800">${worker.workerName || worker.workerNameEn || 'عامل بدون اسم'}</h5>
-                                ${worker.workerNameEn && worker.workerName ? `<span class="text-[10px] text-slate-500 font-mono block mt-0.5 font-bold" dir="ltr">${worker.workerNameEn}</span>` : ''}
+                                <h5 class="text-sm font-black text-slate-800">${worker.workerName || 'عامل بدون اسم'}</h5>
                             </div>
                             <span class="text-[10px] bg-slate-200/70 text-slate-600 px-2.5 py-1 rounded-md font-bold">${worker.profession || '-'} | ${worker.nationality || '-'}</span>
                         </div>
@@ -535,13 +562,25 @@
         function renderGroupedAccordions(workersList, isUrgentSection) {
             if (!workersList.length) return ''; const groups = {};
             workersList.forEach(w => { const s = w.sponsorName || 'بدون كفيل'; if (!groups[s]) groups[s] = { phone: w.sponsorPhone, workers: [] }; groups[s].workers.push(w); });
-            let html = '<div class="space-y-4">';
+            // تم التغيير من CSS Grid إلى CSS Columns لحل مشكلة انسدال الصفين معاً
+            let html = '<div class="columns-1 md:columns-2 gap-4">'; 
             for (const [sponsorName, data] of Object.entries(groups)) {
+                const isContacted = data.workers.some(w => w.contacted);
                 html += `
-                <details class="rounded-3xl border ${isUrgentSection?'border-red-300 shadow-lg':'border-white/10 bg-white/5'} overflow-hidden group" ${isUrgentSection ? 'open' : ''}>
-                    <summary class="px-5 py-4 cursor-pointer flex justify-between items-center ${isUrgentSection?'bg-red-50 text-red-900':'text-white hover:bg-white/10'}">
-                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-xl flex items-center justify-center ${isUrgentSection?'bg-red-200 text-red-600':'bg-white/20 text-white'}">💼</div><div><h4 class="text-sm font-black">${sponsorName}</h4><p class="text-[10px] opacity-70" dir="ltr">${data.phone || 'بدون هاتف'}</p></div></div>
-                        <div class="flex items-center gap-2"><span class="${isUrgentSection?'bg-red-600':'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${data.workers.length}</span></div>
+                <details class="break-inside-avoid mb-4 rounded-3xl border ${isUrgentSection?'border-red-300 shadow-lg':'border-white/10 bg-white/5'} overflow-hidden group">
+                    <summary class="px-4 py-4 cursor-pointer flex justify-between items-center ${isUrgentSection?'bg-red-50 text-red-900':'text-white hover:bg-white/10'} transition-all">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div class="w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center ${isUrgentSection?'bg-red-200 text-red-600':'bg-white/20 text-white'}">💼</div>
+                            <div class="truncate">
+                                <h4 class="text-sm font-black truncate">${sponsorName}</h4>
+                                <p class="text-[10px] opacity-70" dir="ltr">${data.phone || 'بدون هاتف'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            ${isContacted ? `<span class="bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">✓ تواصلنا</span>` : ''}
+                            <button onclick="deleteSponsor(event, '${sponsorName}')" class="${isUrgentSection?'bg-red-200 hover:bg-red-500 text-red-700 hover:text-white':'bg-white/10 hover:bg-red-500 text-white'} p-1 rounded-md transition flex items-center justify-center" title="إبادة الكفيل وعماله">🗑️</button>
+                            <span class="${isUrgentSection?'bg-red-600':'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${data.workers.length}</span>
+                        </div>
                     </summary>
                     <div class="p-4 bg-black/10 flex flex-col gap-3 border-t ${isUrgentSection?'border-red-100':'border-white/5'}">${data.workers.map(w => renderWorkerCompactCard(w)).join('')}</div>
                 </details>`;
@@ -553,7 +592,7 @@
                 const container = document.getElementById('lists-container'); if(!container) return;
                 const totalCounterEl = document.getElementById('total-counter'); if(totalCounterEl) totalCounterEl.innerText = workers.length;
 
-                const filteredWorkers = workers.filter(w => (w.workerName && w.workerName.toLowerCase().includes(searchQuery)) || (w.workerNameEn && w.workerNameEn.toLowerCase().includes(searchQuery)) || (w.sponsorName && w.sponsorName.toLowerCase().includes(searchQuery)) || (w.sponsorPhone && w.sponsorPhone.includes(searchQuery)));
+                const filteredWorkers = workers.filter(w => (w.workerName && w.workerName.toLowerCase().includes(searchQuery)) || (w.sponsorName && w.sponsorName.toLowerCase().includes(searchQuery)) || (w.sponsorPhone && w.sponsorPhone.includes(searchQuery)));
                 const urgentWorkers = filteredWorkers.filter(w => getDaysDiff(w.residencyEnd) <= 7 || getDaysDiff(w.insuranceEnd) <= 7);
                 const safeWorkers = filteredWorkers.filter(w => !urgentWorkers.includes(w));
 
@@ -567,10 +606,10 @@
         }
 
         // ================= AI OCR & FILE HANDLING =================
-        window.handleImageFile = async (e, type) => {
+        window.handleImageFile = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            processImageForAI(file, type);
+            processImageForAI(file);
             e.target.value = ''; 
         };
 
@@ -580,33 +619,15 @@
                 if (item.type.indexOf("image") !== -1) { 
                     e.preventDefault(); 
                     const file = item.getAsFile(); 
-                    
-                    const result = await Swal.fire({
-                        title: 'تحديد نوع الصورة',
-                        text: 'هل الصورة التي قمت بلصقها تخص الهوية/الإقامة أم التأمين؟',
-                        icon: 'question',
-                        showDenyButton: true,
-                        showCancelButton: true,
-                        confirmButtonText: '📄 إقامة/هوية',
-                        denyButtonText: '🏥 تأمين طبي',
-                        cancelButtonText: 'إلغاء الأمر',
-                        confirmButtonColor: '#8B0000',
-                        denyButtonColor: '#1d4ed8'
-                    });
-
-                    if (result.isConfirmed) {
-                        processImageForAI(file, 'residency');
-                    } else if (result.isDenied) {
-                        processImageForAI(file, 'insurance');
-                    }
+                    processImageForAI(file);
                     break;
                 } 
             }
         };
 
-        async function processImageForAI(blob, type) {
+        async function processImageForAI(blob) {
             const statusDiv = document.getElementById('ocr-status');
-            const buttonsContainer = document.getElementById('ocr-buttons-container');
+            const dropZone = document.getElementById('drop-zone');
             
             if (!apiKey || apiKey.trim() === "") return Swal.fire('تنبيه', 'يرجى إدخال مفتاح الذكاء الاصطناعي من الإعدادات ⚙️', 'warning');
             
@@ -614,36 +635,20 @@
                 const base64Data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
                 const dataUrl = `data:${blob.type || "image/png"};base64,${base64Data}`;
                 
-                buttonsContainer.classList.add('hidden');
+                dropZone.classList.add('hidden');
                 statusDiv.classList.remove('hidden');
                 
-                // عرض الصورة كخلفية تفاعلية جذابة أثناء المعالجة
                 statusDiv.style.backgroundImage = `linear-gradient(rgba(239, 246, 255, 0.85), rgba(239, 246, 255, 0.95)), url('${dataUrl}')`;
                 statusDiv.style.backgroundSize = 'cover';
                 statusDiv.style.backgroundPosition = 'center';
                 
-                let aiPrompt = "";
-                if (type === 'residency') {
-                    aiPrompt = `أنت خبير في استخراج البيانات بدقة متناهية. استخرج البيانات من صورة الهوية/الإقامة المرفقة. يجب أن يكون الرد عبارة عن مصفوفة JSON صالحة (Valid JSON Array) فقط لا غير، بدون أي نصوص إضافية مثل markdown.
+                let aiPrompt = `أنت خبير في قراءة الهويات والبطاقات بدقة متناهية. استخرج البيانات التالية من الصورة وأرجعها كمصفوفة JSON صالحة (Valid JSON Array) فقط لا غير، بدون أي نصوص إضافية.
 يجب أن يحتوي كل كائن في المصفوفة على المفاتيح التالية فقط:
-- "workerNameAr": الاسم الكامل للعامل باللغة العربية.
-- "workerNameEn": الاسم الكامل للعامل باللغة الإنجليزية كما هو مكتوب.
+- "workerName": الاسم الكامل للعامل باللغة العربية حصراً (وإذا لم يوجد استخرجه بالإنجليزية).
 - "nationality": الجنسية باللغة العربية.
 - "profession": المهنة باللغة العربية.
-- "residencyEnd": تاريخ انتهاء الإقامة ويجب أن يكون بصيغة "YYYY-MM-DD" بالأرقام الإنجليزية. تجاهل تاريخ التأمين.`;
-                } else {
-                    aiPrompt = `أنت خبير في استخراج البيانات الطبية بدقة متناهية. الصورة المرفقة عبارة عن جدول بيانات تأمين طبي.
-ركز بتركيز عالٍ جداً على الأعمدة التالية:
-- عمود "Name" يحتوي على اسم المؤمن عليه باللغة الإنجليزية.
-- عمود "Expiry Date" يحتوي على تاريخ انتهاء التأمين (عادة بصيغة DD/MMM/YYYY مثل 30/Mar/2027).
-
-المطلوب:
-استخرج جميع الأسماء وتواريخ الانتهاء المقابلة لها من الجدول. قم بتحويل صيغة التاريخ لتصبح "YYYY-MM-DD" حصراً (مثال: 30/Mar/2027 تتحول إلى 2027-03-30).
-يجب أن يكون الرد عبارة عن مصفوفة JSON صالحة (Valid JSON Array) فقط لا غير، بدون أي نصوص إضافية.
-يجب أن يحتوي كل كائن في المصفوفة على المفاتيح التالية فقط:
-- "workerNameEn": اسم المؤمن عليه باللغة الإنجليزية تماماً كما هو مكتوب.
-- "insuranceEnd": تاريخ انتهاء التأمين بصيغة "YYYY-MM-DD" حصراً.`;
-                }
+- "residencyEnd": تاريخ انتهاء الإقامة ويجب أن يكون بصيغة "YYYY-MM-DD" بالأرقام الإنجليزية.
+تجاهل أي بيانات أخرى وتأكد من الدقة العالية جداً في قراءة النصوص الصغيرة.`;
 
                 const payload = { contents: [{ role: "user", parts: [{ text: aiPrompt }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
                 
@@ -655,152 +660,76 @@
                 let dataArray = JSON.parse(rawText);
                 if (!Array.isArray(dataArray)) dataArray = [dataArray];
                 
-                if (type === 'residency') {
-                    if (dataArray.length === 1) {
-                        const d = dataArray[0];
-                        if(d.workerNameAr) document.getElementById('wNameAr').value = d.workerNameAr; 
-                        if(d.workerNameEn) document.getElementById('wNameEn').value = d.workerNameEn; 
-                        if(d.nationality) document.getElementById('wNationality').value = d.nationality; 
-                        if(d.profession) document.getElementById('wProfession').value = d.profession;
-                        if(d.residencyEnd && d.residencyEnd!=='غير محدد') document.getElementById('rEnd')._flatpickr.setDate(d.residencyEnd);
-                        
-                        document.getElementById('iEnd').value = ''; 
-                        if(document.getElementById('iEnd')._flatpickr) document.getElementById('iEnd')._flatpickr.clear();
-                        
-                        Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تفريغ بيانات الهوية بنجاح', showConfirmButton:false, timer:2000});
-                    } else if (dataArray.length > 1) {
-                        const { value: batchData } = await Swal.fire({
-                            title: `تم استخراج ${dataArray.length} هويات`,
-                            html: `
-                                <div class="mb-4">
-                                    <input id="batch-sName" placeholder="اسم الكفيل (سيطُبق على جميع العمال)" class="w-full border-2 border-slate-300 p-2.5 rounded-xl mb-2 text-sm text-right bg-white outline-none">
-                                    <input id="batch-sPhone" placeholder="رقم هاتف الكفيل" dir="ltr" class="w-full border-2 border-slate-300 p-2.5 rounded-xl text-sm text-right bg-white outline-none">
-                                </div>
-                                <div class="max-h-48 overflow-y-auto text-right text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                    ${dataArray.map((w, i) => `
-                                        <div class="border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0 flex justify-between items-center">
-                                            <div>
-                                                <b class="text-[#8B0000]">${w.workerNameAr || 'بدون اسم عربي'}</b><br>
-                                                <span class="text-slate-500 font-mono" dir="ltr">${w.workerNameEn || ''}</span><br>
-                                                المهنة: ${w.profession || '-'}
-                                            </div>
-                                            <span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold">${w.residencyEnd || '-'}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `,
-                            focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ جميع السجلات', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
-                            preConfirm: () => {
-                                return { sponsorName: document.getElementById('batch-sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('batch-sPhone').value.trim() }
-                            }
-                        });
-
-                        if (batchData) {
-                            Swal.fire({ title: 'جاري الحفظ الجماعي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                            const batch = window.writeBatch(window.db);
-                            let addedCount = 0;
-                            for(let w of dataArray) {
-                                if(!w.workerNameAr && !w.workerNameEn) continue;
-                                
-                                const isDuplicate = workers.some(existing => {
-                                    const matchAr = w.workerNameAr && existing.workerName && existing.workerName.trim() === w.workerNameAr.trim();
-                                    const matchEn = w.workerNameEn && existing.workerNameEn && existing.workerNameEn.trim().toLowerCase() === w.workerNameEn.trim().toLowerCase();
-                                    return (matchAr || matchEn) && existing.sponsorName.trim() === batchData.sponsorName.trim();
-                                });
-                                
-                                if(isDuplicate) continue;
-                                
-                                const ref = window.doc(window.collection(window.db, 'workers'));
-                                batch.set(ref, {
-                                    sponsorName: batchData.sponsorName, sponsorPhone: batchData.sponsorPhone,
-                                    workerName: w.workerNameAr || '', workerNameEn: w.workerNameEn || '',
-                                    nationality: w.nationality || '', profession: w.profession || '',
-                                    residencyEnd: w.residencyEnd && w.residencyEnd !== 'غير محدد' ? w.residencyEnd : '',
-                                    insuranceEnd: '',
-                                    createdAt: new Date().toISOString()
-                                });
-                                addedCount++;
-                            }
-                            await batch.commit();
-                            Swal.fire('نجاح', `تم إضافة ${addedCount} سجلات بنجاح. (تم تجاهل الأسماء المكررة إن وجدت)`, 'success');
-                        }
-                    }
-                } else if (type === 'insurance') {
-                    let currentSponsor = document.getElementById('sName').value.trim();
-                    if (!currentSponsor) {
-                        return Swal.fire('تنبيه هام', 'يرجى كتابة "جهة الكفالة" (اسم الكفيل) في الحقل المخصص أولاً، لكي يتمكن النظام من البحث عن عماله وتحديث تأمينهم آلياً.', 'warning');
-                    }
+                if (dataArray.length === 1) {
+                    const d = dataArray[0];
+                    if(d.workerName) document.getElementById('wName').value = d.workerName; 
+                    if(d.nationality) document.getElementById('wNationality').value = d.nationality; 
+                    if(d.profession) document.getElementById('wProfession').value = d.profession;
+                    if(d.residencyEnd && d.residencyEnd!=='غير محدد') document.getElementById('rEnd').value = d.residencyEnd;
                     
-                    const { value: confirmUpdate } = await Swal.fire({
-                        title: `مطابقة التأمين - ${currentSponsor}`,
+                    document.getElementById('iEnd').value = ''; 
+                    
+                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تفريغ بيانات الهوية بنجاح', showConfirmButton:false, timer:2000});
+                } else if (dataArray.length > 1) {
+                    const { value: batchData } = await Swal.fire({
+                        title: `تم استخراج ${dataArray.length} هويات`,
                         html: `
-                            <div class="text-[11px] text-slate-500 mb-3 font-bold">سيتم البحث عن هؤلاء العمال تحت كفالة (${currentSponsor}):</div>
+                            <div class="mb-4">
+                                <input id="batch-sName" placeholder="اسم الكفيل (سيطُبق على جميع العمال)" class="w-full border-2 border-slate-300 p-2.5 rounded-xl mb-2 text-sm text-right bg-white outline-none">
+                                <input id="batch-sPhone" placeholder="رقم هاتف الكفيل" dir="ltr" class="w-full border-2 border-slate-300 p-2.5 rounded-xl text-sm text-right bg-white outline-none">
+                            </div>
                             <div class="max-h-48 overflow-y-auto text-right text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
                                 ${dataArray.map((w, i) => `
                                     <div class="border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0 flex justify-between items-center">
-                                        <b class="text-blue-700 font-mono text-left" dir="ltr">${w.workerNameEn || 'بدون اسم'}</b>
-                                        <span dir="ltr" class="font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">${w.insuranceEnd || '-'}</span>
+                                        <div>
+                                            <b class="text-[#8B0000]">${w.workerName || 'بدون اسم'}</b><br>
+                                            المهنة: ${w.profession || '-'}
+                                        </div>
+                                        <span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold">${w.residencyEnd || '-'}</span>
                                     </div>
                                 `).join('')}
                             </div>
                         `,
-                        showCancelButton: true, confirmButtonText: 'تحديث التأمين للعمال', cancelButtonText: 'إلغاء الأمر', confirmButtonColor: '#1d4ed8'
+                        focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ جميع السجلات', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
+                        preConfirm: () => {
+                            return { sponsorName: document.getElementById('batch-sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('batch-sPhone').value.trim() }
+                        }
                     });
 
-                    if (confirmUpdate) {
-                        Swal.fire({ title: 'جاري المطابقة والتحديث...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    if (batchData) {
+                        Swal.fire({ title: 'جاري الحفظ الجماعي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                         const batch = window.writeBatch(window.db);
-                        let updatedCount = 0;
-                        let notFoundNames = [];
-
-                        // دالة خوارزمية تنظيف الأسماء للمطابقة القوية (تحذف المسافات وأي شيء عدا الحروف)
-                        const normalizeName = (name) => (name || "").toLowerCase().replace(/[^a-z]/gi, '');
-
-                        for (let w of dataArray) {
-                            if (!w.workerNameEn || !w.insuranceEnd) continue;
+                        let addedCount = 0;
+                        for(let w of dataArray) {
+                            if(!w.workerName) continue;
                             
-                            const cleanExtractedName = normalizeName(w.workerNameEn);
-                            if(!cleanExtractedName) continue;
-                            
-                            const targetWorker = workers.find(existing => {
-                                if (existing.sponsorName.trim() !== currentSponsor) return false;
-                                
-                                const existingEn = normalizeName(existing.workerNameEn);
-                                const existingAr = (existing.workerName || "").trim(); // كاحتياط لو لم يكن هناك إنجليزي
-                                
-                                // مطابقة قوية إذا تساوى الاسمان الإنجليزيان (بدون مسافات) أو إذا احتوى أحدهما الآخر (لتلافي نقص مقطع في الاسم)
-                                if (existingEn && (existingEn === cleanExtractedName || existingEn.includes(cleanExtractedName) || cleanExtractedName.includes(existingEn))) return true;
-                                if (existingAr === w.workerNameEn.trim()) return true; // لو حدث خطأ والتقط الذكاء اسم عربي
-                                
-                                return false;
+                            const isDuplicate = workers.some(existing => {
+                                return existing.workerName && existing.workerName.trim() === w.workerName.trim() && existing.sponsorName.trim() === batchData.sponsorName.trim();
                             });
-
-                            if (targetWorker) {
-                                const ref = window.doc(window.db, 'workers', targetWorker.id);
-                                batch.update(ref, { insuranceEnd: w.insuranceEnd });
-                                updatedCount++;
-                            } else {
-                                notFoundNames.push(w.workerNameEn);
-                            }
+                            
+                            if(isDuplicate) continue;
+                            
+                            const ref = window.doc(window.collection(window.db, 'workers'));
+                            batch.set(ref, {
+                                sponsorName: batchData.sponsorName, sponsorPhone: batchData.sponsorPhone,
+                                workerName: w.workerName || '',
+                                nationality: w.nationality || '', profession: w.profession || '',
+                                residencyEnd: w.residencyEnd && w.residencyEnd !== 'غير محدد' ? w.residencyEnd : '',
+                                insuranceEnd: '',
+                                createdAt: new Date().toISOString(), contacted: false
+                            });
+                            addedCount++;
                         }
-                        
-                        if (updatedCount > 0) await batch.commit();
-
-                        if (notFoundNames.length > 0) {
-                            Swal.fire('تم التحديث جزئياً', `تم تحديث تأمين ${updatedCount} عمال.\n\nلم يتم العثور على الأسماء التالية:\n${notFoundNames.join('\n')}`, 'warning');
-                        } else if (updatedCount > 0) {
-                            Swal.fire('نجاح', `تم تحديث تأمين ${updatedCount} عمال بنجاح.`, 'success');
-                        } else {
-                            Swal.fire('فشل المطابقة', 'لم يتم العثور على أي عامل مطابق تحت هذا الكفيل.', 'error');
-                        }
+                        await batch.commit();
+                        Swal.fire('نجاح', `تم إضافة ${addedCount} سجلات بنجاح. (تم تجاهل الأسماء المكررة إن وجدت)`, 'success');
                     }
                 }
             } catch (err) { 
-                Swal.fire('خطأ في الاستخراج', 'تعذر قراءة الصورة بالكامل، يرجى التأكد من وضوحها وأنها وثيقة صحيحة.', 'error'); 
+                Swal.fire('خطأ في الاستخراج', 'تعذر قراءة الصورة بالكامل، يرجى التأكد من وضوحها.', 'error'); 
             } finally {
-                buttonsContainer.classList.remove('hidden');
+                dropZone.classList.remove('hidden');
                 statusDiv.classList.add('hidden');
-                statusDiv.style.backgroundImage = 'none'; // إزالة الصورة بعد الانتهاء
+                statusDiv.style.backgroundImage = 'none'; 
             }
         }
 
@@ -867,35 +796,25 @@
                             <div class="bg-white p-6 rounded-[2rem] sticky top-6 shadow-2xl" onpaste="handlePaste(event)">
                                 <h3 class="text-xl font-black mb-6 text-slate-800 flex items-center gap-2">➕ تقييد سجل جديد</h3>
                                 
-                                <div id="ocr-buttons-container" class="flex gap-3 mb-4">
-                                    <div onclick="document.getElementById('aiImageUploadRes').click()" class="flex-1 bg-[#f8fafc] border-2 border-dashed border-red-300 rounded-2xl p-4 text-center cursor-pointer hover:bg-red-50 transition relative group shadow-sm">
-                                        <input type="file" id="aiImageUploadRes" accept="image/*" class="hidden" onchange="handleImageFile(event, 'residency')">
-                                        <div class="text-3xl mb-1 transition-transform group-hover:scale-110">📄</div>
-                                        <p class="text-[12px] font-black text-[#8B0000]">إدراج هوية/إقامة</p>
-                                    </div>
-                                    <div onclick="document.getElementById('aiImageUploadIns').click()" class="flex-1 bg-[#f8fafc] border-2 border-dashed border-blue-300 rounded-2xl p-4 text-center cursor-pointer hover:bg-blue-50 transition relative group shadow-sm">
-                                        <input type="file" id="aiImageUploadIns" accept="image/*" class="hidden" onchange="handleImageFile(event, 'insurance')">
-                                        <div class="text-3xl mb-1 transition-transform group-hover:scale-110">🏥</div>
-                                        <p class="text-[12px] font-black text-blue-700">إدراج تأمين طبي</p>
-                                    </div>
+                                <div id="drop-zone" onclick="document.getElementById('aiImageUpload').click()" class="bg-[#f8fafc] border-2 border-dashed border-slate-400 rounded-2xl p-6 text-center cursor-pointer mb-6 hover:bg-slate-50 transition relative">
+                                    <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="handleImageFile(event)">
+                                    <div class="text-3xl mb-1">📷</div>
+                                    <p class="text-[13px] font-black text-slate-700">اضغط هنا أو (Ctrl+V) لإدراج صورة الهوية</p>
+                                    <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي بالذكاء الاصطناعي</p>
                                 </div>
-                                <div id="ocr-status" class="hidden py-4 text-center text-sm font-black text-blue-600 animate-pulse bg-blue-50 border border-blue-100 rounded-xl mb-4">يتم استخراج البيانات بالذكاء الاصطناعي... ⚡</div>
-                                <p class="text-center text-[10px] text-slate-500 font-bold mb-6 bg-slate-50 py-1 rounded">(يمكنك أيضاً استخدام Ctrl+V للصق الصورة مباشرة)</p>
+                                <div id="ocr-status" class="hidden py-10 text-center text-sm font-black text-blue-800 animate-pulse bg-blue-50 border border-blue-100 rounded-xl mb-6 shadow-inner">يتم استخراج البيانات بدقة... ⚡</div>
 
                                 <div class="space-y-4">
                                     <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">جهة الكفالة</label><input id="sName" list="sponsors-list" placeholder="اكتب أو اختر اسم الكفيل" class="w-full input-field rounded-xl text-sm font-black bg-slate-50 outline-none"><datalist id="sponsors-list">${datalistOptions}</datalist></div>
                                     <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">هاتف التواصل</label><input id="sPhone" placeholder="05X XXX XXXX" type="tel" class="w-full input-field rounded-xl text-sm font-bold bg-slate-50 outline-none text-left" dir="ltr"></div>
                                     <div class="border-t-2 border-dashed border-slate-200 my-4 relative"><span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[10px] text-slate-400 font-bold">البيانات</span></div>
                                     
-                                    <div class="flex gap-3">
-                                        <input id="wNameAr" placeholder="الاسم (عربي)" class="w-1/2 input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none text-right">
-                                        <input id="wNameEn" placeholder="الاسم (English)" class="w-1/2 input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none font-mono" dir="ltr" style="text-align: left;">
-                                    </div>
+                                    <input id="wName" placeholder="الاسم (عربي أو إنجليزي)" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none">
                                     
                                     <div class="flex gap-3"><input id="wNationality" placeholder="الجنسية" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"><input id="wProfession" placeholder="المهنة" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"></div>
                                     <div class="flex gap-3 bg-[#f8fafc] p-4 rounded-xl border border-slate-200 mt-2">
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="يوم/شهر/سنة"></div>
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين</label><input type="text" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="يوم/شهر/سنة"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="YYYY-MM-DD"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين (يدوي)</label><input type="text" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-bold text-center" placeholder="YYYY-MM-DD"></div>
                                     </div>
                                 </div>
                                 <button onclick="saveWorker()" class="w-full mt-6 py-4 bg-gradient-to-l from-[#8B0000] to-[#600000] text-white rounded-xl font-black shadow-lg hover:scale-[1.02] transition-transform text-sm">اعتماد وحفظ السجل</button>
