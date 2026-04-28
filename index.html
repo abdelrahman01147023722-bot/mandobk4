@@ -66,7 +66,7 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">مفتاح API الخاص بك (Google AI Studio)</label>
-                    <input type="password" id="setting-apiKey" class="w-full input-field rounded-xl text-sm font-mono tracking-wider" placeholder="AIzaSy..." dir="ltr">
+                    <input type="password" id="setting-apiKey" class="w-full input-field rounded-xl text-sm font-mono tracking-wider" placeholder="AIzaSy..." dir="ltr" autocomplete="new-password">
                 </div>
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm">
                     <button onclick="testApiConnection()" class="w-full py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-black hover:bg-blue-50 transition shadow-sm flex justify-center items-center gap-2">
@@ -229,10 +229,7 @@
             return dbDate;
         };
 
-        function initFlatpickr() { 
-            // تم تفريغ الدالة لجعل حقول التاريخ قياسية (Native HTML Date)
-            // مما يسمح لك بالكتابة اليدوية التامة براحة (يوم-شهر-سنة)
-        }
+        function initFlatpickr() {}
         
         window.updateDashText = async (type, val) => {
             if(type === 'start') dashConfig.manualStart = val.trim(); if(type === 'end') dashConfig.manualEnd = val.trim();
@@ -265,7 +262,7 @@
             if (workers.length === 0) return Swal.fire("تنبيه", "السجلات فارغة", "info");
             const dataToExport = [...workers].sort((a,b)=>(a.sponsorName||'').localeCompare(b.sponsorName||'','ar')).map((w, i) => ({
                 "م": i + 1, "اسم الكفيل": w.sponsorName || 'بدون كفيل', "رقم هاتف الكفيل": w.sponsorPhone || '---',
-                "اسم العامل": w.workerName || '---',
+                "اسم العامل": w.workerName ? w.workerName.replace('|', ' - ') : '---',
                 "الجنسية": w.nationality || '---', "المهنة": w.profession || '---',
                 "تاريخ إنتهاء الإقامة": formatDateDDMMYYYY(w.residencyEnd), "تاريخ إنتهاء التأمين": formatDateDDMMYYYY(w.insuranceEnd),
                 "تاريخ الإضافة بالنظام": w.createdAt ? formatDateDDMMYYYY(w.createdAt.split('T')[0]) : '---'
@@ -379,16 +376,16 @@
             const { value: formValues } = await Swal.fire({
                 title: 'تعديل السجل سحابياً',
                 html: `<div class="text-right space-y-3 p-2">
-                        <input id="edit-sName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="اسم الكفيل" value="${worker.sponsorName || ''}">
-                        <input id="edit-sPhone" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="رقم الكفيل" value="${worker.sponsorPhone || ''}" dir="ltr">
-                        <input id="edit-wName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 mt-2 outline-none" placeholder="الاسم (عربي أو English)" value="${worker.workerName || ''}">
+                        <input id="edit-sName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="اسم الكفيل" value="${worker.sponsorName || ''}" autocomplete="off">
+                        <input id="edit-sPhone" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="رقم الكفيل" value="${worker.sponsorPhone || ''}" dir="ltr" autocomplete="off">
+                        <input id="edit-wName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 mt-2 outline-none" placeholder="الاسم (عربي أو English)" value="${worker.workerName || ''}" autocomplete="off">
                         <div class="flex gap-2">
-                            <input id="edit-wNat" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="الجنسية" value="${worker.nationality || ''}">
-                            <input id="edit-wProf" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="المهنة" value="${worker.profession || ''}">
+                            <input id="edit-wNat" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="الجنسية" value="${worker.nationality || ''}" autocomplete="off">
+                            <input id="edit-wProf" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="المهنة" value="${worker.profession || ''}" autocomplete="off">
                         </div>
                         <div class="flex gap-2 border-t pt-4 mt-3">
-                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ الإقامة</label><input id="edit-rEnd" type="text" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white text-center text-slate-800 font-bold" value="${window.displayDate(worker.residencyEnd)}" placeholder="يوم-شهر-سنة"></div>
-                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ التأمين</label><input id="edit-iEnd" type="text" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white text-center text-slate-800 font-bold" value="${window.displayDate(worker.insuranceEnd)}" placeholder="يوم-شهر-سنة"></div>
+                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ الإقامة</label><input id="edit-rEnd" type="text" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white text-center text-slate-800 font-bold" value="${window.displayDate(worker.residencyEnd)}" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
+                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ التأمين</label><input id="edit-iEnd" type="text" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white text-center text-slate-800 font-bold" value="${window.displayDate(worker.insuranceEnd)}" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
                         </div>
                     </div>`,
                 focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ التحديث', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
@@ -404,7 +401,7 @@
             const worker = workers.find(w => w.id === workerId); const typeLabel = type === 'residency' ? 'الإقامة' : 'التأمين';
             const { value: newDate } = await Swal.fire({
                 title: `تجديد وثيقة (${typeLabel})`, 
-                html: `<p class="mb-4 text-sm text-slate-600 font-bold">للعامل: <span class="text-[#8B0000]">${worker.workerName || 'بدون اسم'}</span></p><input id="renew-date" type="text" dir="ltr" class="swal2-input bg-slate-50 border-2 text-center text-slate-800 font-bold" placeholder="يوم-شهر-سنة (مثال: 25-12-2024)">`,
+                html: `<p class="mb-4 text-sm text-slate-600 font-bold">للعامل: <span class="text-[#8B0000]">${worker.workerName || 'بدون اسم'}</span></p><input id="renew-date" type="text" dir="ltr" class="swal2-input bg-slate-50 border-2 text-center text-slate-800 font-bold" placeholder="يوم-شهر-سنة (مثال: 25-12-2024)" autocomplete="off">`,
                 showCancelButton: true, confirmButtonText: 'اعتماد التجديد', cancelButtonText: 'إلغاء', confirmButtonColor: '#25D366',
                 preConfirm: () => { 
                     let v = document.getElementById('renew-date').value.trim(); 
@@ -443,7 +440,9 @@
             const safeProf = w.profession && w.profession !== 'غير محدد' ? w.profession : 'غير محدد';
             const safeNat = w.nationality && w.nationality !== 'غير محدد' ? w.nationality : 'غير محدد';
             
-            const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${w.workerName} – المهنة ${safeProf}  – الجنسية ${safeNat} ، تنتهي بتاريخ ${expDate} (${expType}).\nوفي حال كان العامل لا يزال على كفالتكم، نرجو منكم التواصل  لاتخاذ إجراءات التجديد في أقرب وقت. ***\nمركز مندوبك | لتخليص المعاملات`;
+            let wNameClean = w.workerName ? w.workerName.split('|')[0].trim() : 'عامل';
+            
+            const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${wNameClean} – المهنة ${safeProf}  – الجنسية ${safeNat} ، تنتهي بتاريخ ${expDate} (${expType}).\nوفي حال كان العامل لا يزال على كفالتكم، نرجو منكم التواصل  لاتخاذ إجراءات التجديد في أقرب وقت. ***\nمركز مندوبك | لتخليص المعاملات`;
             window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`, '_blank');
         };
 
@@ -524,7 +523,7 @@
             let pct = addedInPeriod > 0 ? Math.min(100, Math.round((totalRenewed / addedInPeriod) * 100)) : 0;
             let logHtml = renewedLog.length > 0 ? [...renewedLog].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map(r => `
                 <div class="text-[10px] text-white/90 bg-white/5 px-2.5 py-2 rounded-lg flex justify-between items-center border border-white/5">
-                    <span class="font-bold text-[#25D366]">${r.workerName ? r.workerName.split(' ').slice(0, 3).join(' ') : '---'}</span><span class="text-[9px] opacity-80 bg-black/20 px-2 py-0.5 rounded-full">ك: ${r.sponsorName ? r.sponsorName.split(' ').slice(0, 2).join(' ') : '---'}</span>
+                    <span class="font-bold text-[#25D366]">${r.workerName ? r.workerName.split('|')[0].trim().split(' ').slice(0, 3).join(' ') : '---'}</span><span class="text-[9px] opacity-80 bg-black/20 px-2 py-0.5 rounded-full">ك: ${r.sponsorName ? r.sponsorName.split(' ').slice(0, 2).join(' ') : '---'}</span>
                 </div>`).join('') : `<div class="text-[10px] text-white/40 text-center py-4">لم يتم رصد إجراءات تجديد مؤخراً</div>`;
 
             return `
@@ -558,12 +557,19 @@
             const isWarning = rStat.isWarning || iStat.isWarning;
             const rAlert = getDaysDiff(worker.residencyEnd) <= 7; const iAlert = getDaysDiff(worker.insuranceEnd) <= 7;
 
+            let displayName = worker.workerName || 'عامل بدون اسم';
+            let nameHtml = `<h5 class="text-sm font-black text-slate-800">${displayName}</h5>`;
+            if(displayName.includes('|')) {
+                let parts = displayName.split('|');
+                nameHtml = `<h5 class="text-sm font-black text-slate-800">${parts[0].trim()}<span class="block text-[10px] text-slate-500 font-bold mt-0.5" dir="ltr">${parts[1].trim()}</span></h5>`;
+            }
+
             return `
                 <div class="${isWarning ? 'bg-white border-red-500 shadow-md scale-[1.01]' : 'bg-slate-50 border-slate-200'} rounded-2xl p-4 transition-all duration-300 border-2 relative group">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-slate-200/80 gap-3">
                         <div class="flex flex-wrap items-center gap-2">
                             <div>
-                                <h5 class="text-sm font-black text-slate-800">${worker.workerName || 'عامل بدون اسم'}</h5>
+                                ${nameHtml}
                             </div>
                             <span class="text-[10px] bg-slate-200/70 text-slate-600 px-2.5 py-1 rounded-md font-bold">${worker.profession || '-'} | ${worker.nationality || '-'}</span>
                         </div>
@@ -668,24 +674,42 @@
                 statusDiv.style.backgroundSize = 'cover';
                 statusDiv.style.backgroundPosition = 'center';
                 
-                // تحديث وتطوير قوي جداً لأوامر القارئ الذكي (Super OCR Prompt)
-                let aiPrompt = `أنت خبير متقدم في التعرف الضوئي على الحروف (OCR) وقراءة بطاقات الهوية الرسمية بدقة متناهية جداً.
-المطلوب استخراج البيانات التالية من الصورة بدقة وعناية فائقة، وإرجاعها كمصفوفة JSON صالحة (Valid JSON Array) فقط لا غير، بدون أي نصوص إضافية:
-- "workerName": الاسم الكامل للعامل باللغة العربية حصراً (وإذا لم يوجد نهائياً استخرجه بالإنجليزية).
-- "nationality": الجنسية باللغة العربية.
-- "profession": المهنة باللغة العربية.
-- "residencyEnd": تاريخ انتهاء الإقامة (تأكد من قراءة التاريخ الصحيح لانتهاء الصلاحية/الإقامة وليس تاريخ الإصدار أو الميلاد)، ويجب أن يكون بصيغة "YYYY-MM-DD" بالأرقام الإنجليزية.
-تجاهل أي بيانات أخرى. ركز بشدة على النصوص الصغيرة جداً، وتأكد من صحة التواريخ والأسماء بنسبة 100%.`;
+                // هندسة الأوامر الجديدة (الجذرية) لدعم كشوفات الإقامة المعقدة واستخراج اللغتين
+                let aiPrompt = `أنت محرك ذكاء اصطناعي خارق لاستخراج البيانات (OCR). 
+المهمة: استخراج بيانات العمال من هذه الصورة (تأشيرات إقامة، هويات، كشوفات).
+التعليمات الصارمة جداً: 
+أرجع النتيجة **فقط** على شكل مصفوفة JSON (JSON Array) صالحة تماماً، بدون أي كلمة إضافية.
+يجب أن يحتوي كل كائن (Object) على المفاتيح التالية حصراً:
+- "workerName": استخرج الاسم باللغة العربية والاسم باللغة الإنجليزية معاً، وافصل بينهما برمز الخط العمودي (|) هكذا بالضبط: "الاسم بالعربي | English Name".
+- "nationality": الجنسية باللغة العربية (ابحث عن حقل الجنسية).
+- "profession": المهنة باللغة العربية (ابحث عن حقل المهنة).
+- "residencyEnd": تاريخ "انتهاء التصريح" أو "تاريخ الانتهاء" (احذر: تجاهل "تاريخ انتهاء جواز" أو "انتهاء الجواز" تماماً). حول التاريخ المستخرج إلى الصيغة القياسية "YYYY-MM-DD".
+استخرج جميع الأشخاص الموجودين في الصورة بدقة متناهية.`;
 
                 const payload = { contents: [{ role: "user", parts: [{ text: aiPrompt }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
                 
                 const apiRes = await fetchFromGemini(apiKey, payload);
                 if (!apiRes.success) throw new Error(apiRes.error);
-                const result = apiRes.result;
                 
-                let rawText = result.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
-                let dataArray = JSON.parse(rawText);
+                let rawText = apiRes.result.candidates[0].content.parts[0].text;
+                
+                // المصفاة الجراحية المتقدمة (تضمن استخراج مصفوفة JSON حتى لو كتب الذكاء الاصطناعي كلاماً زائداً)
+                let dataArray = null;
+                rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                
+                const matchArray = rawText.match(/\[[\s\S]*\]/);
+                const matchObject = rawText.match(/\{[\s\S]*\}/);
+                
+                if (matchArray) {
+                    dataArray = JSON.parse(matchArray[0]);
+                } else if (matchObject) {
+                    dataArray = [JSON.parse(matchObject[0])];
+                } else {
+                    throw new Error("تعذر فهم رد الذكاء الاصطناعي");
+                }
+                
                 if (!Array.isArray(dataArray)) dataArray = [dataArray];
+                if (dataArray.length === 0) throw new Error("لم يتم العثور على بيانات");
                 
                 if (dataArray.length === 1) {
                     const d = dataArray[0];
@@ -696,25 +720,33 @@
                     
                     document.getElementById('iEnd').value = ''; 
                     
-                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تفريغ بيانات الهوية بنجاح', showConfirmButton:false, timer:2000});
+                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تفريغ البيانات بنجاح', showConfirmButton:false, timer:2000});
                 } else if (dataArray.length > 1) {
                     const { value: batchData } = await Swal.fire({
-                        title: `تم استخراج ${dataArray.length} هويات`,
+                        title: `تم استخراج ${dataArray.length} سجلات ⚡`,
                         html: `
                             <div class="mb-4">
-                                <input id="batch-sName" placeholder="اسم الكفيل (سيطُبق على جميع العمال)" class="w-full border-2 border-slate-300 p-2.5 rounded-xl mb-2 text-sm text-right bg-white outline-none">
-                                <input id="batch-sPhone" placeholder="رقم هاتف الكفيل" dir="ltr" class="w-full border-2 border-slate-300 p-2.5 rounded-xl text-sm text-right bg-white outline-none">
+                                <input id="batch-sName" placeholder="اسم الكفيل (سيطُبق على جميع العمال)" class="w-full border-2 border-slate-300 p-2.5 rounded-xl mb-2 text-sm text-right bg-white outline-none" autocomplete="off">
+                                <input id="batch-sPhone" placeholder="رقم هاتف الكفيل" dir="ltr" class="w-full border-2 border-slate-300 p-2.5 rounded-xl text-sm text-right bg-white outline-none" autocomplete="off">
                             </div>
-                            <div class="max-h-48 overflow-y-auto text-right text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                ${dataArray.map((w, i) => `
+                            <div class="max-h-48 overflow-y-auto text-right text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-inner">
+                                ${dataArray.map((w, i) => {
+                                    let displayName = w.workerName || 'بدون اسم';
+                                    let nameHtml = `<b class="text-[#8B0000] truncate block w-40" dir="auto">${displayName}</b>`;
+                                    if(displayName.includes('|')) {
+                                        let parts = displayName.split('|');
+                                        nameHtml = `<b class="text-[#8B0000] block w-40 truncate" dir="auto">${parts[0].trim()}</b><span class="text-[9px] text-slate-500 font-bold block truncate w-40" dir="ltr">${parts[1].trim()}</span>`;
+                                    }
+                                    return `
                                     <div class="border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0 flex justify-between items-center">
-                                        <div>
-                                            <b class="text-[#8B0000]">${w.workerName || 'بدون اسم'}</b><br>
-                                            المهنة: ${w.profession || '-'}
+                                        <div class="truncate pl-2">
+                                            ${nameHtml}
+                                            <span class="text-[9px] text-slate-500 mt-1 block">${w.nationality || '-'} | ${w.profession || '-'}</span>
                                         </div>
-                                        <span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold">${window.displayDate(w.residencyEnd) || '-'}</span>
+                                        <span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold border border-red-100 flex-shrink-0">${window.displayDate(w.residencyEnd) || '-'}</span>
                                     </div>
-                                `).join('')}
+                                    `;
+                                }).join('')}
                             </div>
                         `,
                         focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ جميع السجلات', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
@@ -752,7 +784,8 @@
                     }
                 }
             } catch (err) { 
-                Swal.fire('خطأ في الاستخراج', 'تعذر قراءة الصورة بالكامل، يرجى التأكد من وضوحها.', 'error'); 
+                console.error("OCR ERROR:", err);
+                Swal.fire('لم نتمكن من القراءة!', 'عذراً، لم يستطع المحرك العثور على بيانات واضحة في الصورة، أو أن الصورة غير مدعومة.', 'error'); 
             } finally {
                 dropZone.classList.remove('hidden');
                 statusDiv.classList.add('hidden');
@@ -783,8 +816,8 @@
                         <div class="glass-card p-10 rounded-[3rem] w-full max-w-md text-center">
                             <h2 class="text-4xl font-black text-white mb-2 shadow-sm">مكتب مندوبك</h2>
                             <p class="text-sm font-bold text-[#FFD700] mb-8 uppercase">برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
-                            <form onsubmit="event.preventDefault(); login();">
-                                <input type="password" id="pass" placeholder="مفتاح المرور..." class="w-full p-4 input-field rounded-2xl text-center font-black text-lg mb-6" autocomplete="off">
+                            <form autocomplete="off" onsubmit="event.preventDefault(); login();">
+                                <input type="password" id="pass" placeholder="مفتاح المرور..." class="w-full p-4 input-field rounded-2xl text-center font-black text-lg mb-6" autocomplete="new-password">
                                 <button type="submit" class="w-full py-4 bg-white text-[#8B0000] rounded-2xl font-black shadow-lg hover:scale-[1.02] transition">دخول للنظام</button>
                             </form>
                         </div>
@@ -854,22 +887,22 @@
                                 <div id="drop-zone" onclick="document.getElementById('aiImageUpload').click()" class="bg-[#f8fafc] border-2 border-dashed border-slate-400 rounded-2xl p-6 text-center cursor-pointer mb-6 hover:bg-slate-50 transition relative">
                                     <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="handleImageFile(event)">
                                     <div class="text-3xl mb-1">📷</div>
-                                    <p class="text-[13px] font-black text-slate-700">اضغط هنا أو (Ctrl+V) لإدراج صورة الهوية</p>
-                                    <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي بالذكاء الاصطناعي</p>
+                                    <p class="text-[13px] font-black text-slate-700">اضغط هنا أو (Ctrl+V) لإدراج صورة الكشف/الهوية</p>
+                                    <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي السريع</p>
                                 </div>
-                                <div id="ocr-status" class="hidden py-10 text-center text-sm font-black text-blue-800 animate-pulse bg-blue-50 border border-blue-100 rounded-xl mb-6 shadow-inner">يتم استخراج البيانات بدقة... ⚡</div>
+                                <div id="ocr-status" class="hidden py-10 text-center text-sm font-black text-blue-800 animate-pulse bg-blue-50 border border-blue-100 rounded-xl mb-6 shadow-inner">يتم استخراج البيانات بلمح البصر... ⚡</div>
 
                                 <div class="space-y-4">
-                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">جهة الكفالة</label><input id="sName" list="sponsors-list" placeholder="اكتب أو اختر اسم الكفيل" class="w-full input-field rounded-xl text-sm font-black bg-slate-50 outline-none"><datalist id="sponsors-list">${datalistOptions}</datalist></div>
-                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">هاتف التواصل</label><input id="sPhone" placeholder="05X XXX XXXX" type="tel" class="w-full input-field rounded-xl text-sm font-bold bg-slate-50 outline-none text-left" dir="ltr"></div>
+                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">جهة الكفالة</label><input id="sName" list="sponsors-list" placeholder="اكتب أو اختر اسم الكفيل" class="w-full input-field rounded-xl text-sm font-black bg-slate-50 outline-none" autocomplete="off"><datalist id="sponsors-list">${datalistOptions}</datalist></div>
+                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">هاتف التواصل</label><input id="sPhone" placeholder="05X XXX XXXX" type="tel" class="w-full input-field rounded-xl text-sm font-bold bg-slate-50 outline-none text-left" dir="ltr" autocomplete="off"></div>
                                     <div class="border-t-2 border-dashed border-slate-200 my-4 relative"><span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[10px] text-slate-400 font-bold">البيانات</span></div>
                                     
-                                    <input id="wName" placeholder="الاسم (عربي أو إنجليزي)" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none">
+                                    <input id="wName" placeholder="الاسم (عربي أو إنجليزي)" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none" autocomplete="off">
                                     
-                                    <div class="flex gap-3"><input id="wNationality" placeholder="الجنسية" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"><input id="wProfession" placeholder="المهنة" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"></div>
+                                    <div class="flex gap-3"><input id="wNationality" placeholder="الجنسية" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none" autocomplete="off"><input id="wProfession" placeholder="المهنة" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none" autocomplete="off"></div>
                                     <div class="flex gap-3 bg-[#f8fafc] p-4 rounded-xl border border-slate-200 mt-2">
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" dir="ltr" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة"></div>
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين (يدوي)</label><input type="text" dir="ltr" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" dir="ltr" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين (يدوي)</label><input type="text" dir="ltr" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
                                     </div>
                                 </div>
                                 <button onclick="saveWorker()" class="w-full mt-6 py-4 bg-gradient-to-l from-[#8B0000] to-[#600000] text-white rounded-xl font-black shadow-lg hover:scale-[1.02] transition-transform text-sm">اعتماد وحفظ السجل</button>
