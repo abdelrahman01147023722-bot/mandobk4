@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مكتب مندوبك - برنامج المتابعة والتذكير الذكي</title>
+    <title>مكتب مندوبك - برنامج المتابعة والتذكير الذكي "عبدالرحمن"</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -13,11 +13,31 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     
     <style>
-        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #1a0000 0%, #5c0000 100%); color: #ffffff; min-height: 100vh; overflow-x: hidden; }
-        .glass-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25); }
-        .input-field { background-color: #ffffff; color: #1e293b; border: 2px solid #475569; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); padding: 0.6rem 1rem; transition: all 0.3s ease; }
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: linear-gradient(135deg, #1a0000 0%, #5c0000 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.08); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        }
+        .input-field {
+            background-color: #ffffff;
+            color: #1e293b; 
+            border: 2px solid #475569; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            padding: 0.6rem 1rem;
+            transition: all 0.3s ease;
+        }
         .input-field:focus { outline: none; border-color: #dc2626; box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15); }
         .input-field::placeholder { color: #94a3b8; }
+        
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .urgent-pulse { animation: pulse-red 2s infinite; }
         details > summary { list-style: none; outline: none; }
@@ -30,44 +50,33 @@
 </head>
 <body class="antialiased relative">
 
-    <!-- شاشة الدخول الفورية (مطبوعة في الـ HTML مباشرة لمنع التعليق نهائياً) -->
-    <div id="app">
-        <div class="h-screen flex items-center justify-center px-4" id="login-container">
-            <div class="glass-card p-10 rounded-[3rem] w-full max-w-md text-center">
-                <h2 class="text-4xl font-black text-white mb-2 shadow-sm">مكتب مندوبك</h2>
-                <p class="text-sm font-bold text-[#FFD700] mb-8 uppercase">برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
-                <form autocomplete="off" onsubmit="event.preventDefault(); window.executeLogin();">
-                    <input type="password" id="pass" placeholder="مفتاح المرور..." class="w-full p-4 input-field rounded-2xl text-center font-black text-lg mb-6" autocomplete="new-password">
-                    <button type="submit" class="w-full py-4 bg-white text-[#8B0000] rounded-2xl font-black shadow-lg hover:scale-[1.02] transition">دخول للنظام</button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- الحاوية الأساسية للتطبيق (تُعرض فوراً بدون شاشة تحميل) -->
+    <div id="app"></div>
 
-    <!-- نافذة إعدادات الذكاء الاصطناعي -->
+    <!-- نافذة الإعدادات -->
     <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md text-slate-800 shadow-2xl transform transition-all">
             <div class="flex justify-between items-center mb-5 border-b pb-3">
                 <h3 class="text-xl font-black text-[#8B0000]">⚙️ إعدادات المحرك الذكي</h3>
-                <button onclick="window.closeSettings()" class="text-slate-400 hover:text-red-500 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-red-500 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">مفتاح API الخاص بك</label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">مفتاح API الخاص بك (Google AI Studio)</label>
                     <input type="password" id="setting-apiKey" class="w-full input-field rounded-xl text-sm font-mono tracking-wider" placeholder="AIzaSy..." dir="ltr" autocomplete="new-password">
                 </div>
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm">
-                    <button onclick="window.testApiConnection()" class="w-full py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-black hover:bg-blue-50 transition shadow-sm flex justify-center items-center gap-2">
+                    <button onclick="testApiConnection()" class="w-full py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-black hover:bg-blue-50 transition shadow-sm flex justify-center items-center gap-2">
                         فحص الاتصال بالمحرك
                     </button>
                     <p id="api-test-result" class="text-[11px] mt-3 font-bold text-center hidden transition-all"></p>
                 </div>
             </div>
-            <button onclick="window.saveSettings()" class="w-full mt-6 py-3.5 bg-gradient-to-b from-[#8B0000] to-[#5c0000] text-white rounded-xl font-black hover:opacity-90 transition shadow-lg">حفظ واعتماد الإعدادات</button>
+            <button onclick="saveSettings()" class="w-full mt-6 py-3.5 bg-gradient-to-b from-[#8B0000] to-[#5c0000] text-white rounded-xl font-black hover:opacity-90 transition shadow-lg">حفظ واعتماد الإعدادات</button>
         </div>
     </div>
 
-    <!-- كود قاعدة البيانات (يعمل في الخلفية بصمت) -->
+    <!-- كود قاعدة البيانات بيشتغل في الخلفية بصمت -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -87,169 +96,670 @@
             window.db = getFirestore(app);
             window.collection = collection; window.addDoc = addDoc; window.deleteDoc = deleteDoc;
             window.doc = doc; window.onSnapshot = onSnapshot; window.updateDoc = updateDoc; window.setDoc = setDoc; window.writeBatch = writeBatch;
-            window.isFirebaseReady = true;
-        } catch(e) { console.error("Firebase Error", e); window.isFirebaseReady = false; }
+            window.isFirebaseOnline = true;
+        } catch(e) {
+            console.error("Firebase Init Error:", e);
+            window.isFirebaseOnline = false;
+        }
     </script>
 
-    <!-- المنطق البرمجي الكامل للتطبيق -->
+    <!-- الكود الرئيسي العملاق للتطبيق -->
     <script>
-        window.apiKey = localStorage.getItem('mandoub_api_key') || "";
-        window.workers = []; window.renewals = []; window.searchQuery = ""; 
-        window.dashConfig = { resetTimestamp: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(), manualStart: "", manualEnd: "" };
+        let apiKey = localStorage.getItem('mandoub_api_key') || "";
+        let workers = [], renewals = [], isAuth = false, searchQuery = ""; 
+        let dashConfig = { resetTimestamp: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(), manualStart: "", manualEnd: "" };
 
-        // الذكاء الاصطناعي لحل مشكلة توقف الموديلات القديمة
-        const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
-        window.fetchFromGemini = async function(key, payload) {
+        // ==========================================
+        // SMART AI FALLBACK LOGIC (حل مشكلة المفتاح)
+        // ==========================================
+        const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-1.5-pro-latest'];
+        
+        async function fetchFromGemini(key, payload) {
             let savedModel = localStorage.getItem('mandoub_working_model');
             let modelsToTry = savedModel ? [savedModel, ...GEMINI_MODELS.filter(m => m !== savedModel)] : GEMINI_MODELS;
             let lastErrorMsg = "";
+            
             for (const model of modelsToTry) {
                 try {
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                     });
                     const result = await response.json();
+                    
                     if (response.ok) {
                         localStorage.setItem('mandoub_working_model', model);
                         return { success: true, result: result, model: model };
                     } else {
                         lastErrorMsg = result.error?.message || "Unknown API Error";
-                        if (response.status === 400 && lastErrorMsg.includes("API key")) return { success: false, error: lastErrorMsg }; 
+                        if (response.status === 400 && (lastErrorMsg.includes("API key not valid") || lastErrorMsg.includes("API key was reported as leaked"))) {
+                            return { success: false, error: lastErrorMsg }; 
+                        }
                     }
                 } catch (e) { lastErrorMsg = e.message; }
             }
             return { success: false, error: lastErrorMsg };
+        }
+        // ==========================================
+
+        function sanitizeWorkers(list) { return list.map(w => ({ ...w, id: w.id || Date.now().toString(), createdAt: w.createdAt || new Date().toISOString() })); }
+        function sanitizeRenewals(list) { return list.map(r => ({ ...r, id: r.id || Date.now().toString(), renewDate: r.renewDate || new Date().toISOString() })); }
+
+        function updateSyncUI(status) {
+            const el = document.getElementById('sync-status-badge'); if(!el) return;
+            if(status === 'connected') {
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> 🟢 متصل ومحدث';
+                el.className = 'text-[10px] px-2.5 py-1 rounded-full bg-green-900/50 text-green-100 flex items-center gap-1.5 border border-green-500/30';
+            } else if (status === 'error') {
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span> 🔴 خطأ في الاتصال';
+                el.className = 'text-[10px] px-2.5 py-1 rounded-full bg-red-900/50 text-red-100 flex items-center gap-1.5 border border-red-500/30';
+            } else if (status === 'loading') {
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-spin"></span> ⏳ جاري المزامنة...';
+                el.className = 'text-[10px] px-2.5 py-1 rounded-full bg-amber-900/50 text-amber-100 flex items-center gap-1.5 border border-amber-500/30';
+            }
+        }
+
+        // تم التعديل هنا لضمان عملها بقوة
+        window.startDataListeners = function() {
+            if (!window.isFirebaseOnline) {
+                // إذا لم تحمل قاعدة البيانات بعد، حاول مرة أخرى بعد نصف ثانية
+                setTimeout(window.startDataListeners, 500);
+                return;
+            }
+            updateSyncUI('loading');
+            try {
+                window.onSnapshot(window.collection(window.db, 'workers'), (snapshot) => {
+                    workers = sanitizeWorkers(snapshot.docs.map(d => ({ ...d.data(), id: d.id }))); renderListsOnly(); updateSyncUI('connected');
+                }, (error) => { updateSyncUI('error'); });
+                window.onSnapshot(window.collection(window.db, 'renewals'), (snapshot) => {
+                    renewals = sanitizeRenewals(snapshot.docs.map(d => ({ ...d.data(), id: d.id }))); renderListsOnly();
+                });
+                window.onSnapshot(window.doc(window.db, 'config', 'dashboard'), (docSnap) => {
+                    if (docSnap.exists()) { dashConfig = docSnap.data(); renderListsOnly(); }
+                });
+            } catch (e) { updateSyncUI('error'); }
         };
 
-        // تسجيل الدخول (نقطة العبور للتطبيق)
-        window.executeLogin = () => {
-            const pass = document.getElementById('pass').value;
-            if (btoa(pass) === 'YTE5ODk=') {
-                if(!window.isFirebaseReady) {
-                    Swal.fire({icon: 'info', title: 'جاري تهيئة الاتصال', text: 'يرجى الانتظار ثانية واحدة ثم المحاولة...', timer: 2000, showConfirmButton: false});
-                    return;
-                }
-                window.renderMainApp();
-                window.startDataListeners();
-            } else {
-                Swal.fire('الوصول مرفوض', 'كلمة المرور غير صحيحة', 'error');
+        window.openSettings = () => { document.getElementById('setting-apiKey').value = apiKey; document.getElementById('settingsModal').classList.remove('hidden'); };
+        window.closeSettings = () => { document.getElementById('settingsModal').classList.add('hidden'); };
+        window.saveSettings = () => {
+            const k = document.getElementById('setting-apiKey').value.trim();
+            if(!k) return Swal.fire('خطأ', 'المفتاح مطلوب', 'error');
+            localStorage.setItem('mandoub_api_key', k); apiKey = k; closeSettings();
+            Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم اعتماد الإعدادات', showConfirmButton:false, timer:2000});
+        };
+
+        window.testApiConnection = async () => {
+            const key = document.getElementById('setting-apiKey').value.trim();
+            const resEl = document.getElementById('api-test-result');
+            if(!key) { resEl.innerHTML = '<span class="text-red-500">يرجى إدخال المفتاح أولاً</span>'; resEl.classList.remove('hidden'); return; }
+            resEl.innerHTML = '<span class="text-blue-600 animate-pulse">جاري الفحص الذكي لكل الموديلات...</span>'; resEl.classList.remove('hidden');
+            
+            const payload = { contents: [{ parts: [{ text: "Hi" }] }] };
+            const apiRes = await fetchFromGemini(key, payload);
+            
+            if (apiRes.success) { 
+                resEl.innerHTML = `<span class="text-green-600 bg-green-50 px-2 py-1 rounded shadow-sm block text-[11px]">✅ يعمل بكفاءة!<br>النسخة التي اشتغلت: <b dir="ltr">${apiRes.model}</b></span>`; 
+            } else { 
+                resEl.innerHTML = `<span class="text-red-600 bg-red-50 px-2 py-1 rounded shadow-sm block text-[10px]">❌ رفض من جوجل:<br>${apiRes.error}</span>`; 
             }
         };
 
-        window.logout = () => { location.reload(); };
-
-        // جلب البيانات
-        window.startDataListeners = function() {
-            window.updateSyncUI('loading');
-            try {
-                window.onSnapshot(window.collection(window.db, 'workers'), (snapshot) => {
-                    window.workers = snapshot.docs.map(d => ({ ...d.data(), id: d.id })); window.renderListsOnly(); window.updateSyncUI('connected');
-                }, () => { window.updateSyncUI('error'); });
-                window.onSnapshot(window.collection(window.db, 'renewals'), (snapshot) => {
-                    window.renewals = snapshot.docs.map(d => ({ ...d.data(), id: d.id })); window.renderListsOnly();
-                });
-                window.onSnapshot(window.doc(window.db, 'config', 'dashboard'), (docSnap) => {
-                    if (docSnap.exists()) { window.dashConfig = docSnap.data(); window.renderListsOnly(); }
-                });
-            } catch (e) { window.updateSyncUI('error'); }
+        window.parseManualDate = function(v) {
+            if(!v) return ''; v = v.trim(); let parts = v.split(/[-/]/);
+            if(parts.length === 3) {
+                if(parts[0].length <= 2) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                else if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+            }
+            return v;
         };
 
-        // واجهة الإعدادات
-        window.openSettings = () => { document.getElementById('setting-apiKey').value = window.apiKey; document.getElementById('settingsModal').classList.remove('hidden'); };
-        window.closeSettings = () => { document.getElementById('settingsModal').classList.add('hidden'); };
-        window.saveSettings = () => { const k = document.getElementById('setting-apiKey').value.trim(); if(!k) return; localStorage.setItem('mandoub_api_key', k); window.apiKey = k; window.closeSettings(); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم الحفظ', showConfirmButton:false, timer:2000}); };
-        window.testApiConnection = async () => {
-            const key = document.getElementById('setting-apiKey').value.trim(); const resEl = document.getElementById('api-test-result');
-            if(!key) return; resEl.innerHTML = '<span class="text-blue-600 animate-pulse">جاري الفحص...</span>'; resEl.classList.remove('hidden');
-            const apiRes = await window.fetchFromGemini(key, { contents: [{ parts: [{ text: "Hi" }] }] });
-            if (apiRes.success) { resEl.innerHTML = `<span class="text-green-600 font-bold block bg-green-50 rounded p-1">✅ يعمل بكفاءة!<br>${apiRes.model}</span>`; } 
-            else { resEl.innerHTML = `<span class="text-red-600 font-bold block bg-red-50 rounded p-1">❌ مرفوض:<br>${apiRes.error}</span>`; }
+        window.displayDate = function(dbDate) {
+            if(!dbDate) return ''; let parts = dbDate.split('-');
+            if(parts.length === 3 && parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            return dbDate;
         };
 
-        // دوال المساعدة للتواريخ
-        window.parseManualDate = (v) => { if(!v) return ''; let p = v.trim().split(/[-/]/); if(p.length===3){ if(p[0].length<=2) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`; } return v; };
-        window.displayDate = (d) => { if(!d) return ''; let p = d.split('-'); if(p.length===3 && p[0].length===4) return `${p[2]}-${p[1]}-${p[0]}`; return d; };
-        window.formatDateDDMMYYYY = (dStr) => { if(!dStr || dStr==='غير محدد') return '---'; const d=new Date(dStr); if(isNaN(d.getTime())) return dStr; return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`; };
-        window.getDaysDiff = (dStr) => { if(!dStr || dStr==='غير محدد' || dStr==='---') return Infinity; const d=new Date(dStr); if(isNaN(d.getTime())) return Infinity; return Math.ceil((d.setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/(1000*60*60*24)); };
-        window.getStatus = (d) => { const days = window.getDaysDiff(d); if(days===Infinity) return { label:'غير محدد', bg:'bg-slate-100', text:'text-slate-500', daysText:'', isExpired:false, isWarning:false }; if(days<0) return { label:'منتهية', bg:'bg-red-100', text:'text-red-700', border:'border-red-300', daysText:`منذ ${Math.abs(days)} يوم`, isExpired:true, isWarning:true }; if(days===0) return { label:'تنتهي اليوم', bg:'bg-red-500', text:'text-white', border:'border-red-600', daysText:'اليوم', isExpired:true, isWarning:true }; if(days<=7) return { label:'قاربت', bg:'bg-amber-100', text:'text-amber-700', border:'border-amber-300', daysText:`باقي ${days} يوم`, isExpired:false, isWarning:true }; return { label:'صالحة', bg:'bg-emerald-50', text:'text-emerald-600', border:'border-emerald-200', daysText:`باقي ${days} يوم`, isExpired:false, isWarning:false }; };
-        window.updateSyncUI = (status) => { const el = document.getElementById('sync-status-badge'); if(!el) return; if(status==='connected') el.innerHTML='<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> 🟢 متصل'; else if(status==='error') el.innerHTML='<span class="w-2 h-2 rounded-full bg-red-400"></span> 🔴 خطأ'; else if(status==='loading') el.innerHTML='<span class="w-2 h-2 rounded-full bg-amber-400 animate-spin"></span> ⏳ جاري...'; };
+        function initFlatpickr() {}
+        
+        window.updateDashText = async (type, val) => {
+            if(type === 'start') dashConfig.manualStart = val.trim(); if(type === 'end') dashConfig.manualEnd = val.trim();
+            try { await window.setDoc(window.doc(window.db, 'config', 'dashboard'), dashConfig); } catch(e) {} 
+        };
 
-        // تصدير واستيراد الإكسيل
+        function formatDateDDMMYYYY(dateString) {
+            if(!dateString || dateString === 'غير محدد') return '---';
+            const d = new Date(dateString); if(isNaN(d.getTime())) return dateString;
+            return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+        }
+
+        function getDaysDiff(dateString) {
+            if (!dateString || typeof dateString !== 'string' || dateString === 'غير محدد' || dateString === '---') return Infinity;
+            const d = new Date(dateString); if (isNaN(d.getTime())) return Infinity;
+            return Math.ceil((d.setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+        }
+
+        function getStatus(date) {
+            const days = getDaysDiff(date);
+            if (days === Infinity) return { label: 'غير محدد', bg: 'bg-slate-100', text: 'text-slate-500', daysText: '', isExpired: false, isWarning: false };
+            if (days < 0) return { label: 'منتهية', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', daysText: `منذ ${Math.abs(days)} يوم`, isExpired: true, isWarning: true };
+            if (days === 0) return { label: 'تنتهي اليوم', bg: 'bg-red-500', text: 'text-white', border: 'border-red-600', daysText: 'اليوم', isExpired: true, isWarning: true };
+            if (days <= 7) return { label: 'قاربت', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300', daysText: `باقي ${days} يوم`, isExpired: false, isWarning: true };
+            return { label: 'صالحة', bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', daysText: `باقي ${days} يوم`, isExpired: false, isWarning: false };
+        }
+
+        // ================= EXCEL =================
         window.exportToExcel = () => {
-            if(window.workers.length===0) return Swal.fire("تنبيه","السجلات فارغة","info");
-            const dataToExport = [...window.workers].sort((a,b)=>(a.sponsorName||'').localeCompare(b.sponsorName||'','ar')).map((w,i)=>({ "م":i+1, "اسم الكفيل":w.sponsorName||'بدون كفيل', "رقم هاتف الكفيل":w.sponsorPhone||'---', "اسم العامل":w.workerName?w.workerName.replace('|',' - '):'---', "الجنسية":w.nationality||'---', "المهنة":w.profession||'---', "تاريخ إنتهاء الإقامة":window.formatDateDDMMYYYY(w.residencyEnd), "تاريخ إنتهاء التأمين":window.formatDateDDMMYYYY(w.insuranceEnd), "تاريخ الإضافة بالنظام":w.createdAt?window.formatDateDDMMYYYY(w.createdAt.split('T')[0]):'---' }));
-            const ws = XLSX.utils.json_to_sheet(dataToExport); if(!ws['!views']) ws['!views']=[]; ws['!views'].push({rightToLeft:true}); ws['!cols']=[{wch:5},{wch:25},{wch:15},{wch:30},{wch:15},{wch:20},{wch:18},{wch:18},{wch:18}]; const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"السجل الرئيسي"); XLSX.writeFile(wb,`نسخة_احتياطية_${new Date().toISOString().split('T')[0]}.xlsx`);
+            if (workers.length === 0) return Swal.fire("تنبيه", "السجلات فارغة", "info");
+            const dataToExport = [...workers].sort((a,b)=>(a.sponsorName||'').localeCompare(b.sponsorName||'','ar')).map((w, i) => ({
+                "م": i + 1, "اسم الكفيل": w.sponsorName || 'بدون كفيل', "رقم هاتف الكفيل": w.sponsorPhone || '---',
+                "اسم العامل": w.workerName ? w.workerName.replace('|', ' - ') : '---',
+                "الجنسية": w.nationality || '---', "المهنة": w.profession || '---',
+                "تاريخ إنتهاء الإقامة": formatDateDDMMYYYY(w.residencyEnd), "تاريخ إنتهاء التأمين": formatDateDDMMYYYY(w.insuranceEnd),
+                "تاريخ الإضافة بالنظام": w.createdAt ? formatDateDDMMYYYY(w.createdAt.split('T')[0]) : '---'
+            }));
+            const ws = XLSX.utils.json_to_sheet(dataToExport);
+            if(!ws['!views']) ws['!views'] = []; ws['!views'].push({ rightToLeft: true });
+            ws['!cols'] = [ {wch: 5}, {wch: 25}, {wch: 15}, {wch: 30}, {wch: 15}, {wch: 20}, {wch: 18}, {wch: 18}, {wch: 18} ];
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "السجل الرئيسي");
+            XLSX.writeFile(wb, `نسخة_احتياطية_مندوبك_${new Date().toISOString().split('T')[0]}.xlsx`);
         };
+
         window.importFromExcel = (event) => {
-            const file = event.target.files[0]; if(!file) return; const reader = new FileReader();
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    Swal.fire({title:'جاري استيراد ورفع البيانات...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
-                    const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'}); const jsonData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    if(jsonData.length===0) return Swal.fire('خطأ','الملف فارغ','error');
-                    const batch = window.writeBatch(window.db); let count=0;
-                    for(const r of jsonData) {
-                        const name = r["اسم العامل"]||r["اسم العامل (عربي)"]; if(!name||name==='---') continue;
-                        const pDate = (dStr) => { if(!dStr||dStr==='---') return ''; const p=dStr.split('/'); return p.length===3?`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`:''; };
-                        const ref = window.doc(window.collection(window.db,'workers'));
-                        batch.set(ref,{ sponsorName:r["اسم الكفيل"]!=='---'?r["اسم الكفيل"]:'بدون كفيل', sponsorPhone:r["رقم هاتف الكفيل"]!=='---'?r["رقم هاتف الكفيل"].toString():'', workerName:name, nationality:r["الجنسية"]!=='---'?r["الجنسية"]:'', profession:r["المهنة"]!=='---'?r["المهنة"]:'', residencyEnd:pDate(r["تاريخ إنتهاء الإقامة"]), insuranceEnd:pDate(r["تاريخ إنتهاء التأمين"]), createdAt:new Date().toISOString(), contacted:false }); count++;
+                    Swal.fire({ title: 'جاري استيراد ورفع البيانات...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    if(jsonData.length === 0) return Swal.fire('خطأ', 'الملف فارغ', 'error');
+
+                    const batch = window.writeBatch(window.db); let importedCount = 0;
+                    for (const row of jsonData) {
+                        const excelName = row["اسم العامل"] || row["اسم العامل (عربي)"];
+                        if(!excelName || excelName === '---') continue;
+                        const parseExcelDate = (dStr) => {
+                            if(!dStr || dStr === '---') return ''; const p = dStr.split('/'); return p.length===3 ? `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}` : '';
+                        };
+                        const newWorkerRef = window.doc(window.collection(window.db, 'workers'));
+                        batch.set(newWorkerRef, {
+                            sponsorName: row["اسم الكفيل"] !== '---' ? row["اسم الكفيل"] : 'بدون كفيل',
+                            sponsorPhone: row["رقم هاتف الكفيل"] !== '---' ? row["رقم هاتف الكفيل"].toString() : '',
+                            workerName: excelName, 
+                            nationality: row["الجنسية"] !== '---' ? row["الجنسية"] : '',
+                            profession: row["المهنة"] !== '---' ? row["المهنة"] : '', residencyEnd: parseExcelDate(row["تاريخ إنتهاء الإقامة"]),
+                            insuranceEnd: parseExcelDate(row["تاريخ إنتهاء التأمين"]), createdAt: new Date().toISOString(), contacted: false 
+                        }); importedCount++;
                     }
-                    await batch.commit(); Swal.fire('تم بنجاح!',`تم رفع ${count} سجل.`,'success');
-                } catch(error) { Swal.fire('خطأ','تعذر الاستيراد.','error'); } event.target.value='';
-            }; reader.readAsArrayBuffer(file);
+                    await batch.commit(); Swal.fire('تم بنجاح!', `تم رفع ${importedCount} سجل إلى السحابة.`, 'success');
+                } catch(error) { Swal.fire('خطأ', 'حدث خطأ أثناء الاستيراد.', 'error'); }
+                event.target.value = ''; 
+            };
+            reader.readAsArrayBuffer(file);
         };
 
-        // العمليات الأساسية (حفظ، حذف، تعديل)
+        // ================= CRUD =================
         window.saveWorker = async () => {
-            const data = { sponsorName:document.getElementById('sName').value.trim()||'بدون كفيل', sponsorPhone:document.getElementById('sPhone').value.trim(), workerName:document.getElementById('wName').value.trim(), nationality:document.getElementById('wNationality').value.trim(), profession:document.getElementById('wProfession').value.trim(), residencyEnd:window.parseManualDate(document.getElementById('rEnd').value), insuranceEnd:window.parseManualDate(document.getElementById('iEnd').value), createdAt:new Date().toISOString(), contacted:false };
-            if(!data.workerName) return Swal.fire('تنبيه','يجب إدخال اسم العامل','warning');
-            const isDup = window.workers.some(w => w.workerName && w.workerName.trim().toLowerCase()===data.workerName.toLowerCase() && w.sponsorName.trim()===data.sponsorName);
-            if(isDup) return Swal.fire('تنبيه','هذا العامل مسجل مسبقاً!','warning');
-            Swal.fire({title:'جاري الحفظ...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
-            try { await window.addDoc(window.collection(window.db,'workers'), data); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم الحفظ', showConfirmButton:false, timer:2000}); ['wName','wNationality','wProfession','rEnd','iEnd'].forEach(id=>document.getElementById(id).value=''); document.getElementById('wName').focus(); } catch(e){ Swal.fire('خطأ',e.message,'error'); }
-        };
-        window.deleteWorker = (id) => { Swal.fire({title:'تأكيد الحذف', text:"سيتم حذفه نهائياً.", icon:'warning', showCancelButton:true, confirmButtonColor:'#d33', confirmButtonText:'نعم', cancelButtonText:'إلغاء'}).then(async(res)=>{ if(res.isConfirmed){ try{ await window.deleteDoc(window.doc(window.db,'workers',id)); }catch(e){} } }); };
-        window.deleteSponsor = (e, sName) => { e.stopPropagation(); Swal.fire({title:'حذف الكفيل نهائياً', text:`سيتم حذف ${sName} وعماله!`, icon:'warning', showCancelButton:true, confirmButtonColor:'#d33', confirmButtonText:'نعم، إبادة', cancelButtonText:'إلغاء'}).then(async(res)=>{ if(res.isConfirmed){ try{ Swal.fire({title:'جاري الحذف...', didOpen:()=>Swal.showLoading()}); const batch=window.writeBatch(window.db); window.workers.filter(w=>w.sponsorName===sName).forEach(w=>batch.delete(window.doc(window.db,'workers',w.id))); await batch.commit(); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم الإبادة', showConfirmButton:false, timer:2000}); }catch(e){} } }); };
-        window.editWorker = async (id) => {
-            const w = window.workers.find(x=>x.id===id); if(!w) return;
-            const {value:vals} = await Swal.fire({ title:'تعديل السجل', html:`<div class="text-right space-y-3 p-2"><input id="e-sName" class="w-full border-2 p-2 rounded" placeholder="الكفيل" value="${w.sponsorName||''}"><input id="e-sPhone" class="w-full border-2 p-2 rounded" placeholder="رقم الكفيل" value="${w.sponsorPhone||''}" dir="ltr"><input id="e-wName" class="w-full border-2 p-2 rounded mt-2" placeholder="الاسم" value="${w.workerName||''}"><div class="flex gap-2"><input id="e-wNat" class="w-1/2 border-2 p-2 rounded" placeholder="الجنسية" value="${w.nationality||''}"><input id="e-wProf" class="w-1/2 border-2 p-2 rounded" placeholder="المهنة" value="${w.profession||''}"></div><div class="flex gap-2 mt-3"><div class="w-1/2"><label class="text-xs">تاريخ الإقامة</label><input id="e-rEnd" dir="ltr" class="w-full border-2 p-2 rounded" value="${window.displayDate(w.residencyEnd)}"></div><div class="w-1/2"><label class="text-xs">تاريخ التأمين</label><input id="e-iEnd" dir="ltr" class="w-full border-2 p-2 rounded" value="${window.displayDate(w.insuranceEnd)}"></div></div></div>`, showCancelButton:true, confirmButtonText:'حفظ', cancelButtonText:'إلغاء', preConfirm:()=>{ return { sponsorName:document.getElementById('e-sName').value.trim(), sponsorPhone:document.getElementById('e-sPhone').value.trim(), workerName:document.getElementById('e-wName').value.trim(), nationality:document.getElementById('e-wNat').value.trim(), profession:document.getElementById('e-wProf').value.trim(), residencyEnd:window.parseManualDate(document.getElementById('e-rEnd').value), insuranceEnd:window.parseManualDate(document.getElementById('e-iEnd').value) }; } });
-            if(vals){ if(!vals.workerName) return Swal.fire('خطأ','الاسم إلزامي','error'); try{ await window.updateDoc(window.doc(window.db,'workers',id), vals); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التحديث', showConfirmButton:false, timer:1500}); }catch(e){} }
-        };
-        window.renewDocument = async (id, type) => {
-            const w = window.workers.find(x=>x.id===id); const typeL = type==='residency'?'الإقامة':'التأمين';
-            const {value:nDate} = await Swal.fire({ title:`تجديد (${typeL})`, html:`<p class="mb-4 text-sm font-bold">العامل: ${w.workerName}</p><input id="rn-date" dir="ltr" class="swal2-input text-center" placeholder="يوم-شهر-سنة">`, showCancelButton:true, confirmButtonText:'اعتماد', cancelButtonText:'إلغاء', preConfirm:()=>{ const v=document.getElementById('rn-date').value.trim(); if(!v) return Swal.showValidationMessage('مطلوب التاريخ'); const fd=window.parseManualDate(v); if(isNaN(new Date(fd).getTime())) return Swal.showValidationMessage('صيغة خاطئة'); return fd; } });
-            if(nDate){ try{ const upD = type==='residency'?{residencyEnd:nDate,contacted:false}:{insuranceEnd:nDate,contacted:false}; await window.updateDoc(window.doc(window.db,'workers',id), upD); await window.addDoc(window.collection(window.db,'renewals'), { workerId:id, workerName:w.workerName, sponsorName:w.sponsorName, type:typeL, renewDate:new Date().toISOString() }); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التجديد', showConfirmButton:false, timer:3000}); }catch(e){} }
-        };
-        window.aiDraftMessage = (id) => { const w = window.workers.find(x=>x.id===id); let p=(w.sponsorPhone||"").replace(/\D/g,''); if(p.startsWith('0')) p=p.substring(1); if(p&&!p.startsWith('971')) p='971'+p; if(!p) return Swal.fire('تنبيه','لا يوجد رقم','warning'); window.updateDoc(window.doc(window.db,'workers',id),{contacted:true}).catch(e=>{}); const rDays=window.getDaysDiff(w.residencyEnd); const iDays=window.getDaysDiff(w.insuranceEnd); let eT="", eD=""; if(rDays<=7 && iDays<=7){ eT="الإقامة والتأمين"; eD=`${window.formatDateDDMMYYYY(w.residencyEnd)} و ${window.formatDateDDMMYYYY(w.insuranceEnd)}`; }else if(rDays<=7){ eT="الإقامة"; eD=window.formatDateDDMMYYYY(w.residencyEnd); }else{ eT="التأمين"; eD=window.formatDateDDMMYYYY(w.insuranceEnd); } const msg=`* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${w.workerName.split('|')[0]} – المهنة ${w.profession||'-'}  – الجنسية ${w.nationality||'-'} ، تنتهي بتاريخ ${eD} (${eT}).\nنرجو التواصل لاتخاذ إجراءات التجديد.\nمركز مندوبك`; window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)?`whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}`:`https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`,'_blank'); };
+            const data = {
+                sponsorName: document.getElementById('sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('sPhone').value.trim(),
+                workerName: document.getElementById('wName').value.trim(), 
+                nationality: document.getElementById('wNationality').value.trim(),
+                profession: document.getElementById('wProfession').value.trim(), 
+                residencyEnd: window.parseManualDate(document.getElementById('rEnd').value),
+                insuranceEnd: window.parseManualDate(document.getElementById('iEnd').value), 
+                createdAt: new Date().toISOString(), contacted: false 
+            };
+            
+            if (!data.workerName) return Swal.fire('تنبيه', 'يجب إدخال اسم العامل', 'warning');
+            
+            const isDuplicate = workers.some(w => {
+                return w.workerName && w.workerName.trim().toLowerCase() === data.workerName.toLowerCase() && w.sponsorName.trim() === data.sponsorName;
+            });
 
-        // الذكاء الاصطناعي (OCR)
-        window.handleImageFile = async (e) => { const f=e.target.files[0]; if(f){ window.processImageForAI(f); e.target.value=''; } };
-        window.handlePaste = async (e) => { const items=(e.clipboardData||e.originalEvent.clipboardData).items; for(let i of items){ if(i.type.indexOf("image")!==-1){ e.preventDefault(); window.processImageForAI(i.getAsFile()); break; } } };
-        window.processImageForAI = async (blob) => {
-            const stD=document.getElementById('ocr-status'); const dz=document.getElementById('drop-zone');
-            if(!window.apiKey) return Swal.fire('تنبيه','أدخل مفتاح الذكاء أولاً ⚙️','warning');
-            try {
-                const b64 = await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); });
-                dz.classList.add('hidden'); stD.classList.remove('hidden');
-                const prompt = `أنت محرك استخراج بيانات (OCR). استخرج JSON Array حصراً. المفاتيح: workerName (الاسم بالعربي | English Name), nationality, profession, residencyEnd (YYYY-MM-DD). تجاهل تاريخ الجواز.`;
-                const payload = { contents:[{role:"user", parts:[{text:prompt}, {inlineData:{mimeType:blob.type||"image/png", data:b64}}]}] };
-                const apiRes = await window.fetchFromGemini(window.apiKey, payload); if(!apiRes.success) throw new Error(apiRes.error);
-                let text = apiRes.result.candidates[0].content.parts[0].text.replace(/```json/gi,'').replace(/
-```/g,'').trim();
-                let arr = null; if(text.match(/\[[\s\S]*\]/)) arr = JSON.parse(text.match(/\[[\s\S]*\]/)[0]); else if(text.match(/\{[\s\S]*\}/)) arr = [JSON.parse(text.match(/\{[\s\S]*\}/)[0])]; else throw new Error();
-                if(arr.length===1) { const d=arr[0]; if(d.workerName) document.getElementById('wName').value=d.workerName; if(d.nationality) document.getElementById('wNationality').value=d.nationality; if(d.profession) document.getElementById('wProfession').value=d.profession; if(d.residencyEnd) document.getElementById('rEnd').value=window.displayDate(d.residencyEnd); document.getElementById('iEnd').value=''; Swal.fire({toast:true, icon:'success', title:'تم التفريغ', timer:2000, showConfirmButton:false}); }
-                else if(arr.length>1){
-                    const {value:bD} = await Swal.fire({ title:`تم استخراج ${arr.length} سجلات`, html:`<input id="b-sName" class="w-full border-2 p-2 mb-2" placeholder="اسم الكفيل"><input id="b-sPhone" dir="ltr" class="w-full border-2 p-2" placeholder="رقم الكفيل">`, showCancelButton:true, confirmButtonText:'حفظ الكل', preConfirm:()=>({sponsorName:document.getElementById('b-sName').value||'بدون كفيل', sponsorPhone:document.getElementById('b-sPhone').value}) });
-                    if(bD){ Swal.fire({title:'جاري الحفظ...', didOpen:()=>Swal.showLoading()}); const b=window.writeBatch(window.db); let c=0; for(let w of arr){ if(w.workerName && !window.workers.some(x=>x.workerName===w.workerName)){ b.set(window.doc(window.collection(window.db,'workers')),{sponsorName:bD.sponsorName, sponsorPhone:bD.sponsorPhone, workerName:w.workerName, nationality:w.nationality, profession:w.profession, residencyEnd:w.residencyEnd, insuranceEnd:'', createdAt:new Date().toISOString(), contacted:false}); c++; } } await b.commit(); Swal.fire('نجاح',`تم الحفظ (${c})`,'success'); }
+            if (isDuplicate) return Swal.fire('تنبيه', 'هذا العامل مسجل مسبقاً تحت نفس الكفيل!', 'warning');
+
+            Swal.fire({ title: 'جاري الحفظ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try { 
+                await window.addDoc(window.collection(window.db, 'workers'), data); 
+                Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تقييد السجل سحابياً', showConfirmButton:false, timer:2000});
+                ['wName', 'wNationality', 'wProfession', 'rEnd', 'iEnd'].forEach(id => document.getElementById(id).value = ''); 
+                document.getElementById('wName').focus();
+            } catch(e) { Swal.fire('خطأ', 'تعذر الحفظ.', 'error'); }
+        };
+
+        window.deleteWorker = (id) => {
+            Swal.fire({ title: 'تأكيد الحذف', text: "سيتم حذفه نهائياً.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'نعم، احذف', cancelButtonText: 'إلغاء'
+            }).then(async (result) => {
+                if (result.isConfirmed) { try { await window.deleteDoc(window.doc(window.db, 'workers', id)); } catch(e){ Swal.fire('خطأ', e.message, 'error'); } }
+            });
+        };
+
+        window.deleteSponsor = (event, sponsorName) => {
+            event.stopPropagation(); 
+            Swal.fire({
+                title: 'حذف الكفيل نهائياً',
+                html: `سيتم حذف الكفيل <b class="text-red-600">${sponsorName}</b> وجميع العمال التابعين له نهائياً ولا يمكن التراجع!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'نعم، إبادة الكل 🗑️',
+                cancelButtonText: 'إلغاء الأمر'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        Swal.fire({ title: 'جاري الحذف الشامل...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        const batch = window.writeBatch(window.db);
+                        const workersToDelete = workers.filter(w => w.sponsorName === sponsorName);
+                        workersToDelete.forEach(w => {
+                            const ref = window.doc(window.db, 'workers', w.id);
+                            batch.delete(ref);
+                        });
+                        await batch.commit();
+                        Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم إبادة الكفيل وعماله', showConfirmButton:false, timer:2000});
+                    } catch(e) { Swal.fire('خطأ', e.message, 'error'); }
                 }
-            } catch(e) { Swal.fire('فشل','لم يتمكن الذكاء من قراءة الصورة.','error'); } finally { dz.classList.remove('hidden'); stD.classList.add('hidden'); }
+            });
         };
 
-        // الريندر (رسم الشاشة الرئيسية)
-        window.handleSearch = (e) => { window.searchQuery = e.target.value.toLowerCase(); window.renderListsOnly(); };
-        window.renderMainApp = function() {
+        window.editWorker = async (workerId) => {
+            const worker = workers.find(w => w.id === workerId); if(!worker) return;
+            const { value: formValues } = await Swal.fire({
+                title: 'تعديل السجل سحابياً',
+                html: `<div class="text-right space-y-3 p-2">
+                        <input id="edit-sName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="اسم الكفيل" value="${worker.sponsorName || ''}" autocomplete="off">
+                        <input id="edit-sPhone" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="رقم الكفيل" value="${worker.sponsorPhone || ''}" dir="ltr" autocomplete="off">
+                        <input id="edit-wName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 mt-2 outline-none" placeholder="الاسم (عربي أو English)" value="${worker.workerName || ''}" autocomplete="off">
+                        <div class="flex gap-2">
+                            <input id="edit-wNat" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="الجنسية" value="${worker.nationality || ''}" autocomplete="off">
+                            <input id="edit-wProf" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="المهنة" value="${worker.profession || ''}" autocomplete="off">
+                        </div>
+                        <div class="flex gap-2 border-t pt-4 mt-3">
+                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ الإقامة</label><input id="edit-rEnd" type="text" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white text-center text-slate-800 font-bold" value="${window.displayDate(worker.residencyEnd)}" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
+                            <div class="w-1/2"><label class="text-xs text-slate-500 font-black mb-1 block">تاريخ التأمين</label><input id="edit-iEnd" type="text" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg bg-white text-center text-slate-800 font-bold" value="${window.displayDate(worker.insuranceEnd)}" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
+                        </div>
+                    </div>`,
+                focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ التحديث', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
+                preConfirm: () => { return { sponsorName: document.getElementById('edit-sName').value.trim(), sponsorPhone: document.getElementById('edit-sPhone').value.trim(), workerName: document.getElementById('edit-wName').value.trim(), nationality: document.getElementById('edit-wNat').value.trim(), profession: document.getElementById('edit-wProf').value.trim(), residencyEnd: window.parseManualDate(document.getElementById('edit-rEnd').value), insuranceEnd: window.parseManualDate(document.getElementById('edit-iEnd').value) } }
+            });
+            if (formValues) {
+                if(!formValues.workerName) return Swal.fire('خطأ', 'الاسم إلزامي', 'error');
+                try { await window.updateDoc(window.doc(window.db, 'workers', worker.id), formValues); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التحديث', showConfirmButton:false, timer:1500}); } catch(e){ Swal.fire('خطأ', e.message, 'error'); } 
+            }
+        };
+
+        window.renewDocument = async (workerId, type) => {
+            const worker = workers.find(w => w.id === workerId); const typeLabel = type === 'residency' ? 'الإقامة' : 'التأمين';
+            const { value: newDate } = await Swal.fire({
+                title: `تجديد وثيقة (${typeLabel})`, 
+                html: `<p class="mb-4 text-sm text-slate-600 font-bold">للعامل: <span class="text-[#8B0000]">${worker.workerName || 'بدون اسم'}</span></p><input id="renew-date" type="text" dir="ltr" class="swal2-input bg-slate-50 border-2 text-center text-slate-800 font-bold" placeholder="يوم-شهر-سنة (مثال: 25-12-2024)" autocomplete="off">`,
+                showCancelButton: true, confirmButtonText: 'اعتماد التجديد', cancelButtonText: 'إلغاء', confirmButtonColor: '#25D366',
+                preConfirm: () => { 
+                    let v = document.getElementById('renew-date').value.trim(); 
+                    if(!v) { Swal.showValidationMessage('مطلوب إدخال التاريخ'); return false; }
+                    let formattedDate = window.parseManualDate(v);
+                    if (isNaN(new Date(formattedDate).getTime())) { Swal.showValidationMessage('صيغة التاريخ غير صحيحة، يرجى كتابته: يوم-شهر-سنة'); return false; }
+                    return formattedDate; 
+                }
+            });
+            if (newDate) {
+                const renewalEvent = { workerId: worker.id, workerName: worker.workerName || 'عامل', sponsorName: worker.sponsorName || 'بدون كفيل', type: typeLabel, renewDate: new Date().toISOString() };
+                const updatedData = type === 'residency' ? { residencyEnd: newDate, contacted: false } : { insuranceEnd: newDate, contacted: false };
+                try { 
+                    await window.updateDoc(window.doc(window.db, 'workers', worker.id), updatedData); 
+                    await window.addDoc(window.collection(window.db, 'renewals'), renewalEvent); 
+                    Swal.fire({toast:true, position:'top-end', icon:'success', title:`تم التجديد بنجاح وتسجيله في الإنجازات`, showConfirmButton:false, timer:3000}); 
+                } catch(e){ Swal.fire('خطأ', e.message, 'error'); }
+            }
+        };
+
+        window.aiDraftMessage = (workerId) => {
+            const w = workers.find(x => x.id === workerId); let p = (w.sponsorPhone || "").replace(/\D/g,'');
+            if (p.startsWith('0')) p = p.substring(1); if (p && !p.startsWith('971')) p = '971' + p; if(!p) return Swal.fire('تنبيه', 'لا يوجد رقم', 'warning');
+            
+            window.updateDoc(window.doc(window.db, 'workers', workerId), { contacted: true }).catch(e=>{});
+
+            const rDays = getDaysDiff(w.residencyEnd); const iDays = getDaysDiff(w.insuranceEnd);
+            let expType = "", expDate = "";
+            if (rDays <= 7 && iDays <= 7) { expType = "الإقامة والتأمين"; expDate = `${formatDateDDMMYYYY(w.residencyEnd)} و ${formatDateDDMMYYYY(w.insuranceEnd)}`; }
+            else if (rDays <= 7) { expType = "الإقامة"; expDate = formatDateDDMMYYYY(w.residencyEnd); } else if (iDays <= 7) { expType = "التأمين"; expDate = formatDateDDMMYYYY(w.insuranceEnd); }
+            const safeProf = w.profession && w.profession !== 'غير محدد' ? w.profession : 'غير محدد';
+            const safeNat = w.nationality && w.nationality !== 'غير محدد' ? w.nationality : 'غير محدد';
+            
+            let wNameClean = w.workerName ? w.workerName.split('|')[0].trim() : 'عامل';
+            
+            const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${wNameClean} – المهنة ${safeProf}  – الجنسية ${safeNat} ، تنتهي بتاريخ ${expDate} (${expType}).\nوفي حال كان العامل لا يزال على كفالتكم، نرجو منكم التواصل  لاتخاذ إجراءات التجديد في أقرب وقت. ***\nمركز مندوبك | لتخليص المعاملات`;
+            window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        // ================= UI RENDERING & DASHBOARD =================
+        window.resetDashboard = async () => {
+            Swal.fire({ title: 'تأكيد تصفير الدورة؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#8B0000', confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'
+            }).then(async (result) => {
+                if (result.isConfirmed) { dashConfig.resetTimestamp = new Date().toISOString(); dashConfig.manualStart = ""; dashConfig.manualEnd = ""; try { await window.setDoc(window.doc(window.db, 'config', 'dashboard'), dashConfig); } catch(e){} }
+            });
+        };
+
+        window.printDashboard = () => {
+            const rTime = dashConfig.resetTimestamp || new Date(new Date().setDate(new Date().getDate() - 30)).toISOString();
+            const addedInPeriod = workers.filter(w => w.createdAt && w.createdAt >= rTime).length;
+            const renewedLog = renewals.filter(r => r.renewDate && r.renewDate >= rTime); const totalRenewed = renewedLog.length;
+            let pct = addedInPeriod > 0 ? Math.min(100, Math.round((totalRenewed / addedInPeriod) * 100)) : 0;
+
+            let tableRows = renewedLog.length > 0 ? [...renewedLog].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map((r, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${r.workerName ? r.workerName.replace('|', ' - ') : '---'}</td>
+                    <td>${r.sponsorName || '---'}</td>
+                    <td>${r.type || '---'}</td>
+                    <td dir="ltr">${formatDateDDMMYYYY(r.renewDate)}</td>
+                </tr>
+            `).join('') : `<tr><td colspan="5" style="text-align:center;">لا توجد عمليات تجديد مسجلة</td></tr>`;
+
+            const printContent = `
+                <html dir="rtl" lang="ar">
+                <head>
+                    <title>تقرير الإنجازات - مكتب مندوبك</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+                        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #8B0000; padding-bottom: 20px; }
+                        .header h1 { color: #8B0000; margin: 0 0 10px 0; font-size: 28px; }
+                        .header p { margin: 0; color: #666; font-size: 14px; }
+                        .stats-grid { display: flex; justify-content: space-between; margin-bottom: 40px; gap: 20px; }
+                        .stat-box { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; }
+                        .stat-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: normal; }
+                        .stat-box .val { font-size: 28px; font-weight: bold; color: #0f172a; margin: 0; }
+                        .stat-box .val.green { color: #16a34a; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
+                        th { background-color: #f1f5f9; color: #334155; font-weight: bold; }
+                        tr:nth-child(even) { background-color: #f8fafc; }
+                        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📊 تقرير لوحة الإنجازات</h1>
+                        <p>مركز مندوبك - برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
+                        <p>تاريخ استخراج التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box"><h3>سجلات مسجلة حديثاً</h3><p class="val">${addedInPeriod}</p></div>
+                        <div class="stat-box"><h3>سجلات تم تجديدها</h3><p class="val green">${totalRenewed}</p></div>
+                        <div class="stat-box"><h3>نسبة الإنجاز</h3><p class="val">${pct}%</p></div>
+                    </div>
+                    <h3 style="color: #334155; margin-bottom: 15px;">سجل التجديدات الأخيرة:</h3>
+                    <table>
+                        <thead><tr><th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">نوع الوثيقة</th><th width="20%">تاريخ التجديد بالنظام</th></tr></thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                    <div class="footer">تم إنشاء هذا التقرير آلياً بواسطة نظام "مركز مندوبك"</div>
+                </body>
+                </html>
+            `;
+            const printWin = window.open('', '', 'width=900,height=700');
+            printWin.document.open(); printWin.document.write(printContent); printWin.document.close();
+            printWin.focus(); setTimeout(() => { printWin.print(); printWin.close(); }, 500);
+        };
+
+        function renderDashboard() {
+            const rTime = dashConfig.resetTimestamp || new Date(new Date().setDate(new Date().getDate() - 30)).toISOString();
+            const addedInPeriod = workers.filter(w => w.createdAt && w.createdAt >= rTime).length;
+            const renewedLog = renewals.filter(r => r.renewDate && r.renewDate >= rTime); const totalRenewed = renewedLog.length;
+            let pct = addedInPeriod > 0 ? Math.min(100, Math.round((totalRenewed / addedInPeriod) * 100)) : 0;
+            let logHtml = renewedLog.length > 0 ? [...renewedLog].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map(r => `
+                <div class="text-[10px] text-white/90 bg-white/5 px-2.5 py-2 rounded-lg flex justify-between items-center border border-white/5">
+                    <span class="font-bold text-[#25D366]">${r.workerName ? r.workerName.split('|')[0].trim().split(' ').slice(0, 3).join(' ') : '---'}</span><span class="text-[9px] opacity-80 bg-black/20 px-2 py-0.5 rounded-full">ك: ${r.sponsorName ? r.sponsorName.split(' ').slice(0, 2).join(' ') : '---'}</span>
+                </div>`).join('') : `<div class="text-[10px] text-white/40 text-center py-4">لم يتم رصد إجراءات تجديد مؤخراً</div>`;
+
+            return `
+                <details class="glass-card rounded-3xl mb-8 shadow-[0_10px_30px_rgba(0,0,0,0.3)] border-t-4 border-t-[#8B0000] overflow-hidden group">
+                    <summary class="p-5 md:p-6 cursor-pointer flex flex-col gap-4 select-none outline-none">
+                        <div class="flex justify-between items-center w-full mb-2">
+                            <h3 class="text-base font-black text-white flex items-center gap-2 drop-shadow-md">📊 لوحة قياس الإنجازات</h3>
+                            <svg class="w-5 h-5 transition-transform duration-300 transform group-open:rotate-180 opacity-60 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 sm:gap-4 w-full">
+                            <div class="bg-black/20 border border-white/5 p-3 rounded-2xl text-center"><p class="text-[10px] text-white/60 mb-1">مسجل حديثاً</p><p class="text-2xl font-black text-white">${addedInPeriod}</p></div>
+                            <div class="bg-black/20 border border-white/5 p-3 rounded-2xl text-center"><p class="text-[10px] text-white/60 mb-1">تم تجديده</p><p class="text-2xl font-black text-[#25D366]">${totalRenewed}</p></div>
+                            <div class="bg-black/20 border border-white/5 p-3 rounded-2xl text-center"><p class="text-[10px] text-white/60 mb-1">نسبة الإنجاز</p><p class="text-2xl font-black ${pct >= 50 ? 'text-[#25D366]' : 'text-amber-400'}">${pct}%</p></div>
+                        </div>
+                    </summary>
+                    <div class="p-5 border-t border-white/10 bg-black/10 flex flex-col gap-4">
+                        <div class="flex flex-wrap gap-2 justify-between items-center">
+                            <div class="flex gap-2"><input type="text" value="${dashConfig.manualStart || ''}" onchange="updateDashText('start', this.value)" placeholder="من تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"><input type="text" value="${dashConfig.manualEnd || ''}" onchange="updateDashText('end', this.value)" placeholder="إلى تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"></div>
+                            <div class="flex gap-2">
+                                <button onclick="printDashboard()" class="bg-slate-600/20 text-slate-200 hover:bg-slate-600 hover:text-white px-4 py-2 rounded-xl text-[11px] font-black transition border border-slate-500/30">طباعة التقرير 🖨️</button>
+                                <button onclick="resetDashboard()" class="bg-red-600/20 text-red-200 hover:bg-red-600 px-4 py-2 rounded-xl text-[11px] font-black transition border border-red-500/30">تصفير العداد</button>
+                            </div>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-3 mt-2 max-h-40 overflow-y-auto custom-scrollbar space-y-2">${logHtml}</div>
+                    </div>
+                </details>`;
+        }
+
+        function renderWorkerCompactCard(worker) {
+            const rStat = getStatus(worker.residencyEnd); const iStat = getStatus(worker.insuranceEnd);
+            const isWarning = rStat.isWarning || iStat.isWarning;
+            const rAlert = getDaysDiff(worker.residencyEnd) <= 7; const iAlert = getDaysDiff(worker.insuranceEnd) <= 7;
+
+            let displayName = worker.workerName || 'عامل بدون اسم';
+            let nameHtml = `<h5 class="text-sm font-black text-slate-800">${displayName}</h5>`;
+            if(displayName.includes('|')) {
+                let parts = displayName.split('|');
+                nameHtml = `<h5 class="text-sm font-black text-slate-800">${parts[0].trim()}<span class="block text-[10px] text-slate-500 font-bold mt-0.5" dir="ltr">${parts[1].trim()}</span></h5>`;
+            }
+
+            return `
+                <div class="${isWarning ? 'bg-white border-red-500 shadow-md scale-[1.01]' : 'bg-slate-50 border-slate-200'} rounded-2xl p-4 transition-all duration-300 border-2 relative group">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-slate-200/80 gap-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div>${nameHtml}</div>
+                            <span class="text-[10px] bg-slate-200/70 text-slate-600 px-2.5 py-1 rounded-md font-bold">${worker.profession || '-'} | ${worker.nationality || '-'}</span>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                            <button onclick="aiDraftMessage('${worker.id}')" class="flex-1 sm:flex-none bg-[#25D366]/10 text-[#1da851] hover:bg-[#25D366] hover:text-white px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#25D366]/30">واتساب</button>
+                            <button onclick="editWorker('${worker.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-white p-1.5 rounded-xl transition border border-blue-200 shadow-sm">✏️</button>
+                            <button onclick="deleteWorker('${worker.id}')" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white p-1.5 rounded-xl transition border border-red-200 shadow-sm">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 w-full">
+                        <div class="flex-1 flex justify-between items-center bg-white border ${rStat.border} ${rAlert?'urgent-pulse':''} p-3 rounded-xl shadow-sm">
+                            <div><span class="text-[9px] text-slate-400 font-bold mb-1 block">الإقامة</span><span class="text-xs font-black text-slate-700" dir="ltr">${formatDateDDMMYYYY(worker.residencyEnd)}</span></div>
+                            <div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${rStat.text}">${rStat.daysText || rStat.label}</span>${rAlert ? `<button onclick="renewDocument('${worker.id}', 'residency')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}</div>
+                        </div>
+                        <div class="flex-1 flex justify-between items-center bg-white border ${iStat.border} ${iAlert?'urgent-pulse':''} p-3 rounded-xl shadow-sm">
+                            <div><span class="text-[9px] text-slate-400 font-bold mb-1 block">التأمين</span><span class="text-xs font-black text-slate-700" dir="ltr">${formatDateDDMMYYYY(worker.insuranceEnd)}</span></div>
+                            <div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${iStat.text}">${iStat.daysText || iStat.label}</span>${iAlert ? `<button onclick="renewDocument('${worker.id}', 'insurance')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}</div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderGroupedAccordions(workersList, isUrgentSection) {
+            if (!workersList.length) return ''; const groups = {};
+            workersList.forEach(w => { const s = w.sponsorName || 'بدون كفيل'; if (!groups[s]) groups[s] = { phone: w.sponsorPhone, workers: [] }; groups[s].workers.push(w); });
+            let html = '<div class="columns-1 md:columns-2 gap-4">'; 
+            for (const [sponsorName, data] of Object.entries(groups)) {
+                const isContacted = data.workers.some(w => w.contacted);
+                html += `
+                <details class="break-inside-avoid mb-4 rounded-3xl border ${isUrgentSection?'border-red-300 shadow-lg':'border-white/10 bg-white/5'} overflow-hidden group">
+                    <summary class="px-4 py-4 cursor-pointer flex justify-between items-center ${isUrgentSection?'bg-red-50 text-red-900':'text-white hover:bg-white/10'} transition-all">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div class="w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center ${isUrgentSection?'bg-red-200 text-red-600':'bg-white/20 text-white'}">💼</div>
+                            <div class="truncate">
+                                <h4 class="text-sm font-black truncate">${sponsorName}</h4>
+                                <p class="text-[10px] opacity-70" dir="ltr">${data.phone || 'بدون هاتف'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            ${isContacted ? `<span class="bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">✓ تواصلنا</span>` : ''}
+                            <button onclick="deleteSponsor(event, '${sponsorName}')" class="${isUrgentSection?'bg-red-200 hover:bg-red-500 text-red-700 hover:text-white':'bg-white/10 hover:bg-red-500 text-white'} p-1 rounded-md transition flex items-center justify-center" title="إبادة الكفيل وعماله">🗑️</button>
+                            <span class="${isUrgentSection?'bg-red-600':'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${data.workers.length}</span>
+                        </div>
+                    </summary>
+                    <div class="p-4 bg-black/10 flex flex-col gap-3 border-t ${isUrgentSection?'border-red-100':'border-white/5'}">${data.workers.map(w => renderWorkerCompactCard(w)).join('')}</div>
+                </details>`;
+            } return html + '</div>';
+        }
+
+        function renderListsOnly() {
+            try {
+                const container = document.getElementById('lists-container'); if(!container) return;
+                const totalCounterEl = document.getElementById('total-counter'); if(totalCounterEl) totalCounterEl.innerText = workers.length;
+
+                const filteredWorkers = workers.filter(w => (w.workerName && w.workerName.toLowerCase().includes(searchQuery)) || (w.sponsorName && w.sponsorName.toLowerCase().includes(searchQuery)) || (w.sponsorPhone && w.sponsorPhone.includes(searchQuery)));
+                const urgentWorkers = filteredWorkers.filter(w => getDaysDiff(w.residencyEnd) <= 7 || getDaysDiff(w.insuranceEnd) <= 7);
+                const safeWorkers = filteredWorkers.filter(w => !urgentWorkers.includes(w));
+
+                container.innerHTML = `
+                    ${renderDashboard()}
+                    ${urgentWorkers.length > 0 ? `<section class="mb-10"><h3 class="text-white font-black text-lg flex items-center gap-2 mb-5 px-2">🔴 إنذارات الإنتهاء الحرجة</h3>${renderGroupedAccordions(urgentWorkers, true)}</section>` : ''}
+                    <section><h3 class="text-white font-black text-lg mb-5 opacity-95 px-2">📁 سجل الكفلاء (السجلات السارية)</h3>${safeWorkers.length > 0 ? renderGroupedAccordions(safeWorkers, false) : `<div class="text-center py-10 border-2 border-dashed border-white/20 rounded-3xl bg-black/20 text-white/50 text-sm font-bold">لا توجد سجلات حالياً</div>`}</section>
+                `;
+                initFlatpickr();
+            } catch (error) {}
+        }
+
+        // ================= AI OCR & FILE HANDLING =================
+        window.handleImageFile = async (e) => { const file = e.target.files[0]; if (!file) return; processImageForAI(file); e.target.value = ''; };
+
+        window.handlePaste = async (e) => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) { 
+                if (item.type.indexOf("image") !== -1) { e.preventDefault(); const file = item.getAsFile(); processImageForAI(file); break; } 
+            }
+        };
+
+        async function processImageForAI(blob) {
+            const statusDiv = document.getElementById('ocr-status'); const dropZone = document.getElementById('drop-zone');
+            if (!apiKey || apiKey.trim() === "") return Swal.fire('تنبيه', 'يرجى إدخال مفتاح الذكاء الاصطناعي من الإعدادات ⚙️', 'warning');
+            
+            try {
+                const base64Data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
+                const dataUrl = `data:${blob.type || "image/png"};base64,${base64Data}`;
+                
+                dropZone.classList.add('hidden'); statusDiv.classList.remove('hidden');
+                statusDiv.style.backgroundImage = `linear-gradient(rgba(239, 246, 255, 0.85), rgba(239, 246, 255, 0.95)), url('${dataUrl}')`;
+                statusDiv.style.backgroundSize = 'cover'; statusDiv.style.backgroundPosition = 'center';
+                
+                let aiPrompt = `أنت محرك ذكاء اصطناعي خارق لاستخراج البيانات (OCR). 
+المهمة: استخراج بيانات العمال من هذه الصورة (تأشيرات إقامة، هويات، كشوفات).
+التعليمات الصارمة جداً: 
+أرجع النتيجة **فقط** على شكل مصفوفة JSON (JSON Array) صالحة تماماً، بدون أي كلمة إضافية.
+يجب أن يحتوي كل كائن (Object) على المفاتيح التالية حصراً:
+- "workerName": استخرج الاسم باللغة العربية والاسم باللغة الإنجليزية معاً، وافصل بينهما برمز الخط العمودي (|) هكذا بالضبط: "الاسم بالعربي | English Name".
+- "nationality": الجنسية باللغة العربية.
+- "profession": المهنة باللغة العربية.
+- "residencyEnd": تاريخ "انتهاء التصريح" أو "تاريخ الانتهاء" (تجاهل "تاريخ انتهاء جواز"). حول التاريخ إلى "YYYY-MM-DD".
+استخرج جميع الأشخاص الموجودين في الصورة بدقة متناهية.`;
+
+                const payload = { contents: [{ role: "user", parts: [{ text: aiPrompt }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
+                
+                const apiRes = await fetchFromGemini(apiKey, payload);
+                if (!apiRes.success) throw new Error(apiRes.error);
+                
+                let rawText = apiRes.result.candidates[0].content.parts[0].text;
+                let dataArray = null;
+                rawText = rawText.replace(/```json/gi, '').replace(/
+```/g, '').trim();
+                
+                const matchArray = rawText.match(/\[[\s\S]*\]/); const matchObject = rawText.match(/\{[\s\S]*\}/);
+                
+                if (matchArray) { dataArray = JSON.parse(matchArray[0]); } else if (matchObject) { dataArray = [JSON.parse(matchObject[0])]; } else { throw new Error("تعذر الفهم"); }
+                if (!Array.isArray(dataArray)) dataArray = [dataArray];
+                if (dataArray.length === 0) throw new Error("لا توجد بيانات");
+                
+                if (dataArray.length === 1) {
+                    const d = dataArray[0];
+                    if(d.workerName) document.getElementById('wName').value = d.workerName; 
+                    if(d.nationality) document.getElementById('wNationality').value = d.nationality; 
+                    if(d.profession) document.getElementById('wProfession').value = d.profession;
+                    if(d.residencyEnd && d.residencyEnd!=='غير محدد') document.getElementById('rEnd').value = window.displayDate(d.residencyEnd);
+                    document.getElementById('iEnd').value = ''; 
+                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تفريغ البيانات بنجاح', showConfirmButton:false, timer:2000});
+                } else if (dataArray.length > 1) {
+                    const { value: batchData } = await Swal.fire({
+                        title: `تم استخراج ${dataArray.length} سجلات ⚡`,
+                        html: `
+                            <div class="mb-4">
+                                <input id="batch-sName" placeholder="اسم الكفيل (سيطُبق على جميع العمال)" class="w-full border-2 border-slate-300 p-2.5 rounded-xl mb-2 text-sm text-right bg-white outline-none" autocomplete="off">
+                                <input id="batch-sPhone" placeholder="رقم هاتف الكفيل" dir="ltr" class="w-full border-2 border-slate-300 p-2.5 rounded-xl text-sm text-right bg-white outline-none" autocomplete="off">
+                            </div>
+                            <div class="max-h-48 overflow-y-auto text-right text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-inner">
+                                ${dataArray.map((w, i) => {
+                                    let displayName = w.workerName || 'بدون اسم';
+                                    let nameHtml = `<b class="text-[#8B0000] truncate block w-40" dir="auto">${displayName}</b>`;
+                                    if(displayName.includes('|')) {
+                                        let parts = displayName.split('|');
+                                        nameHtml = `<b class="text-[#8B0000] block w-40 truncate" dir="auto">${parts[0].trim()}</b><span class="text-[9px] text-slate-500 font-bold block truncate w-40" dir="ltr">${parts[1].trim()}</span>`;
+                                    }
+                                    return `
+                                    <div class="border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0 flex justify-between items-center">
+                                        <div class="truncate pl-2">
+                                            ${nameHtml}
+                                            <span class="text-[9px] text-slate-500 mt-1 block">${w.nationality || '-'} | ${w.profession || '-'}</span>
+                                        </div>
+                                        <span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold border border-red-100 flex-shrink-0">${window.displayDate(w.residencyEnd) || '-'}</span>
+                                    </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `,
+                        focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ جميع السجلات', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
+                        preConfirm: () => { return { sponsorName: document.getElementById('batch-sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('batch-sPhone').value.trim() } }
+                    });
+
+                    if (batchData) {
+                        Swal.fire({ title: 'جاري الحفظ الجماعي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                        const batch = window.writeBatch(window.db); let addedCount = 0;
+                        for(let w of dataArray) {
+                            if(!w.workerName) continue;
+                            const isDuplicate = workers.some(existing => { return existing.workerName && existing.workerName.trim() === w.workerName.trim() && existing.sponsorName.trim() === batchData.sponsorName.trim(); });
+                            if(isDuplicate) continue;
+                            const ref = window.doc(window.collection(window.db, 'workers'));
+                            batch.set(ref, { sponsorName: batchData.sponsorName, sponsorPhone: batchData.sponsorPhone, workerName: w.workerName || '', nationality: w.nationality || '', profession: w.profession || '', residencyEnd: w.residencyEnd && w.residencyEnd !== 'غير محدد' ? w.residencyEnd : '', insuranceEnd: '', createdAt: new Date().toISOString(), contacted: false });
+                            addedCount++;
+                        }
+                        await batch.commit(); Swal.fire('نجاح', `تم إضافة ${addedCount} سجلات بنجاح.`, 'success');
+                    }
+                }
+            } catch (err) { Swal.fire('لم نتمكن من القراءة!', 'عذراً، لم يستطع المحرك العثور على بيانات واضحة.', 'error'); } 
+            finally { dropZone.classList.remove('hidden'); statusDiv.classList.add('hidden'); statusDiv.style.backgroundImage = 'none'; }
+        }
+
+        window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); renderListsOnly(); };
+        
+        window.login = () => { 
+            const userPass = document.getElementById('pass').value;
+            // الباسوورد رجع زي ماكان بالظبط
+            if (btoa(userPass) === 'YTE5ODk=') { 
+                isAuth = true; render(); window.startDataListeners(); 
+            } else { 
+                Swal.fire('الوصول مرفوض', 'كلمة المرور غير صحيحة', 'error'); 
+            } 
+        };
+        
+        window.logout = () => { isAuth = false; workers = []; render(); };
+
+        function render() {
             const app = document.getElementById('app');
-            const dOpts = [...new Set(window.workers.map(w=>w.sponsorName).filter(s=>s&&s!=='بدون كفيل'))].map(s=>`<option value="${s}">`).join('');
+            if (!isAuth) {
+                app.innerHTML = `
+                    <div class="h-screen flex items-center justify-center px-4">
+                        <div class="glass-card p-10 rounded-[3rem] w-full max-w-md text-center">
+                            <h2 class="text-4xl font-black text-white mb-2 shadow-sm">مكتب مندوبك</h2>
+                            <p class="text-sm font-bold text-[#FFD700] mb-8 uppercase">برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
+                            <form autocomplete="off" onsubmit="event.preventDefault(); login();">
+                                <input type="password" id="pass" placeholder="مفتاح المرور..." class="w-full p-4 input-field rounded-2xl text-center font-black text-lg mb-6" autocomplete="new-password">
+                                <button type="submit" class="w-full py-4 bg-white text-[#8B0000] rounded-2xl font-black shadow-lg hover:scale-[1.02] transition">دخول للنظام</button>
+                            </form>
+                        </div>
+                    </div>`; 
+                return;
+            }
+
+            const datalistOptions = [...new Set(workers.map(w => w.sponsorName).filter(s => s && s !== 'بدون كفيل'))].map(s => `<option value="${s}">`).join('');
+
             app.innerHTML = `
                 <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
                     <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-5 bg-black/30 p-5 rounded-[2rem] border border-white/10 shadow-xl backdrop-blur-md">
@@ -257,86 +767,73 @@
                             <div class="text-center md:text-right">
                                 <h1 class="text-3xl sm:text-4xl font-black text-white">مكتب مندوبك</h1>
                                 <div class="flex items-center gap-2 mt-1.5 justify-center md:justify-start">
-                                    <p class="text-[12px] font-black text-[#FFD700] bg-black/40 px-3 py-1 rounded-full border border-white/5">برنامج المتابعة والتذكير</p>
-                                    <div id="sync-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/50 text-white/80">متصل</div>
+                                    <p class="text-[12px] font-black text-[#FFD700] bg-black/40 px-3 py-1 rounded-full border border-white/5">برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
+                                    <div id="sync-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/50 text-white/80">جاري المزامنة...</div>
                                 </div>
                             </div>
                         </div>
                         <div class="flex-1 max-w-lg w-full px-0 md:px-4">
-                             <input type="search" id="searchInput" oninput="window.handleSearch(event)" placeholder="البحث الذكي..." class="w-full py-3.5 pr-12 pl-5 bg-white/10 border border-white/20 rounded-2xl text-sm font-bold text-white placeholder-white/50 focus:outline-none focus:bg-white/20 shadow-inner transition-all hover:bg-white/15">
+                             <div class="relative group">
+                                <input type="search" id="searchInput" oninput="handleSearch(event)" placeholder="البحث الذكي (اسم، هاتف، مهنة)..." class="w-full py-3.5 pr-12 pl-5 bg-white/10 border border-white/20 rounded-2xl text-sm font-bold text-white placeholder-white/50 focus:outline-none focus:bg-white/20 focus:border-white/50 shadow-inner transition-all hover:bg-white/15">
+                             </div>
                         </div>
                         <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                            <div class="bg-blue-900/60 border border-blue-400/30 px-5 py-2.5 rounded-2xl text-center min-w-[90px]"><p class="text-[10px] text-blue-200 font-bold">السجلات</p><p class="text-xl font-black text-white" id="total-counter">${window.workers.length}</p></div>
+                            <div class="bg-blue-900/60 border border-blue-400/30 px-5 py-2.5 rounded-2xl text-center min-w-[90px]">
+                                <p class="text-[10px] text-blue-200 font-bold">السجلات</p>
+                                <p class="text-xl font-black text-white" id="total-counter">${workers.length}</p>
+                            </div>
                             <div class="flex flex-col gap-2 flex-1 md:flex-none">
                                 <div class="flex gap-2">
-                                    <button onclick="window.exportToExcel()" class="flex-1 px-4 py-2 bg-gradient-to-b from-[#25D366] to-[#1da851] text-white rounded-xl text-xs font-black shadow-lg">تصدير إكسيل</button>
-                                    <div class="relative flex-1"><input type="file" id="excelUpload" accept=".xlsx, .xls" class="hidden" onchange="window.importFromExcel(event)"><button onclick="document.getElementById('excelUpload').click()" class="w-full px-4 py-2 bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-xl text-xs font-black shadow-lg">استيراد إكسيل</button></div>
-                                    <button onclick="window.openSettings()" class="bg-slate-700/80 hover:bg-slate-600 text-white p-2 rounded-xl">⚙️</button>
+                                    <button onclick="exportToExcel()" class="flex-1 px-4 py-2 bg-gradient-to-b from-[#25D366] to-[#1da851] text-white rounded-xl text-xs font-black shadow-lg hover:scale-[1.05] border border-green-400 transition-transform" title="تصدير إكسيل">تصدير إكسيل</button>
+                                    <div class="relative flex-1">
+                                        <input type="file" id="excelUpload" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+                                        <button onclick="document.getElementById('excelUpload').click()" class="w-full px-4 py-2 bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-xl text-xs font-black shadow-lg hover:scale-[1.05] border border-blue-400 transition-transform" title="استيراد إكسيل">استيراد إكسيل</button>
+                                    </div>
+                                    <button onclick="openSettings()" class="bg-slate-700/80 hover:bg-slate-600 text-white p-2 rounded-xl border border-slate-500 shadow-md transition-all">⚙️</button>
                                 </div>
-                                <button onclick="window.logout()" class="w-full px-4 py-2 bg-white/5 text-white/70 rounded-xl text-[11px] font-black border border-white/10 hover:bg-red-500 hover:text-white transition-colors">خروج</button>
+                                <button onclick="logout()" class="w-full px-4 py-2 bg-white/5 text-white/70 rounded-xl text-[11px] font-black border border-white/10 hover:bg-red-500 hover:text-white transition-colors">تسجيل الخروج</button>
                             </div>
                         </div>
                     </header>
 
                     <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
                         <div class="xl:col-span-4">
-                            <div class="bg-white p-6 rounded-[2rem] sticky top-6 shadow-2xl" onpaste="window.handlePaste(event)">
+                            <div class="bg-white p-6 rounded-[2rem] sticky top-6 shadow-2xl" onpaste="handlePaste(event)">
                                 <h3 class="text-xl font-black mb-6 text-slate-800 flex items-center gap-2">➕ تقييد سجل جديد</h3>
+                                
                                 <div id="drop-zone" onclick="document.getElementById('aiImageUpload').click()" class="bg-[#f8fafc] border-2 border-dashed border-slate-400 rounded-2xl p-6 text-center cursor-pointer mb-6 hover:bg-slate-50 transition relative">
-                                    <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="window.handleImageFile(event)">
+                                    <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="handleImageFile(event)">
                                     <div class="text-3xl mb-1">📷</div>
-                                    <p class="text-[13px] font-black text-slate-700">إدراج صورة الكشف/الهوية</p>
+                                    <p class="text-[13px] font-black text-slate-700">اضغط هنا أو (Ctrl+V) لإدراج صورة الكشف/الهوية</p>
+                                    <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي السريع</p>
                                 </div>
-                                <div id="ocr-status" class="hidden py-10 text-center text-sm font-black text-blue-800 animate-pulse bg-blue-50 border border-blue-100 rounded-xl mb-6 shadow-inner">جاري الاستخراج ⚡</div>
+                                <div id="ocr-status" class="hidden py-10 text-center text-sm font-black text-blue-800 animate-pulse bg-blue-50 border border-blue-100 rounded-xl mb-6 shadow-inner">يتم استخراج البيانات بلمح البصر... ⚡</div>
 
                                 <div class="space-y-4">
-                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">جهة الكفالة</label><input id="sName" list="sponsors-list" placeholder="اسم الكفيل" class="w-full input-field rounded-xl text-sm font-black bg-slate-50 outline-none" autocomplete="off"><datalist id="sponsors-list">${dOpts}</datalist></div>
-                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">الهاتف</label><input id="sPhone" type="tel" dir="ltr" class="w-full input-field rounded-xl text-sm font-bold bg-slate-50 outline-none text-left" autocomplete="off"></div>
-                                    <input id="wName" placeholder="الاسم" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none mt-2" autocomplete="off">
-                                    <div class="flex gap-3"><input id="wNationality" placeholder="الجنسية" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"><input id="wProfession" placeholder="المهنة" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none"></div>
+                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">جهة الكفالة</label><input id="sName" list="sponsors-list" placeholder="اكتب أو اختر اسم الكفيل" class="w-full input-field rounded-xl text-sm font-black bg-slate-50 outline-none" autocomplete="off"><datalist id="sponsors-list">${datalistOptions}</datalist></div>
+                                    <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">هاتف التواصل</label><input id="sPhone" placeholder="05X XXX XXXX" type="tel" class="w-full input-field rounded-xl text-sm font-bold bg-slate-50 outline-none text-left" dir="ltr" autocomplete="off"></div>
+                                    <div class="border-t-2 border-dashed border-slate-200 my-4 relative"><span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[10px] text-slate-400 font-bold">البيانات</span></div>
+                                    
+                                    <input id="wName" placeholder="الاسم (عربي أو إنجليزي)" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none" autocomplete="off">
+                                    
+                                    <div class="flex gap-3"><input id="wNationality" placeholder="الجنسية" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none" autocomplete="off"><input id="wProfession" placeholder="المهنة" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none" autocomplete="off"></div>
                                     <div class="flex gap-3 bg-[#f8fafc] p-4 rounded-xl border border-slate-200 mt-2">
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" dir="ltr" id="rEnd" class="w-full border-2 p-2.5 text-xs text-center rounded-lg" placeholder="يوم-شهر-سنة"></div>
-                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين</label><input type="text" dir="ltr" id="iEnd" class="w-full border-2 p-2.5 text-xs text-center rounded-lg" placeholder="يوم-شهر-سنة"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" dir="ltr" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
+                                        <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين (يدوي)</label><input type="text" dir="ltr" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
                                     </div>
                                 </div>
-                                <button onclick="window.saveWorker()" class="w-full mt-6 py-4 bg-gradient-to-l from-[#8B0000] to-[#600000] text-white rounded-xl font-black shadow-lg hover:scale-[1.02] transition-transform text-sm">حفظ السجل</button>
+                                <button onclick="saveWorker()" class="w-full mt-6 py-4 bg-gradient-to-l from-[#8B0000] to-[#600000] text-white rounded-xl font-black shadow-lg hover:scale-[1.02] transition-transform text-sm">اعتماد وحفظ السجل</button>
                             </div>
                         </div>
                         <div id="lists-container" class="xl:col-span-8"></div>
                     </div>
                 </div>
             `;
-            initFlatpickr(); window.renderListsOnly();
-        };
+            initFlatpickr();
+        }
 
-        window.renderListsOnly = function() {
-            try {
-                const container = document.getElementById('lists-container'); if(!container) return;
-                const totalCounterEl = document.getElementById('total-counter'); if(totalCounterEl) totalCounterEl.innerText = window.workers.length;
-
-                const fW = window.workers.filter(w => (w.workerName&&w.workerName.toLowerCase().includes(window.searchQuery)) || (w.sponsorName&&w.sponsorName.toLowerCase().includes(window.searchQuery)) || (w.sponsorPhone&&w.sponsorPhone.includes(window.searchQuery)));
-                const uW = fW.filter(w => window.getDaysDiff(w.residencyEnd)<=7 || window.getDaysDiff(w.insuranceEnd)<=7);
-                const sW = fW.filter(w => !uW.includes(w));
-
-                const renderCard = (w) => {
-                    const rS=window.getStatus(w.residencyEnd); const iS=window.getStatus(w.insuranceEnd); const isWarn=rS.isWarning||iS.isWarning; const rA=window.getDaysDiff(w.residencyEnd)<=7; const iA=window.getDaysDiff(w.insuranceEnd)<=7;
-                    let nH = `<h5 class="text-sm font-black text-slate-800">${w.workerName||'بدون'}</h5>`; if((w.workerName||'').includes('|')){ let p=w.workerName.split('|'); nH=`<h5 class="text-sm font-black text-slate-800">${p[0]}<span class="block text-[10px] text-slate-500 font-bold mt-0.5" dir="ltr">${p[1]}</span></h5>`; }
-                    return `<div class="${isWarn?'bg-white border-red-500 shadow-md scale-[1.01]':'bg-slate-50 border-slate-200'} rounded-2xl p-4 transition-all duration-300 border-2 relative group"><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-slate-200/80 gap-3"><div class="flex flex-wrap items-center gap-2"><div>${nH}</div><span class="text-[10px] bg-slate-200/70 text-slate-600 px-2.5 py-1 rounded-md font-bold">${w.profession||'-'} | ${w.nationality||'-'}</span></div><div class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0"><button onclick="window.aiDraftMessage('${w.id}')" class="flex-1 sm:flex-none bg-[#25D366]/10 text-[#1da851] hover:bg-[#25D366] hover:text-white px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#25D366]/30">واتساب</button><button onclick="window.editWorker('${w.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-white p-1.5 rounded-xl">✏️</button><button onclick="window.deleteWorker('${w.id}')" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white p-1.5 rounded-xl">🗑️</button></div></div><div class="flex gap-3 w-full"><div class="flex-1 flex justify-between items-center bg-white border ${rS.border} ${rA?'urgent-pulse':''} p-3 rounded-xl"><div class="flex flex-col"><span class="text-[9px] text-slate-400 font-bold mb-1">الإقامة</span><span class="text-xs font-black text-slate-700" dir="ltr">${window.formatDateDDMMYYYY(w.residencyEnd)}</span></div><div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${rS.text}">${rS.daysText||rS.label}</span>${rA?`<button onclick="window.renewDocument('${w.id}','residency')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>`:''}</div></div><div class="flex-1 flex justify-between items-center bg-white border ${iS.border} ${iA?'urgent-pulse':''} p-3 rounded-xl"><div class="flex flex-col"><span class="text-[9px] text-slate-400 font-bold mb-1">التأمين</span><span class="text-xs font-black text-slate-700" dir="ltr">${window.formatDateDDMMYYYY(w.insuranceEnd)}</span></div><div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${iS.text}">${iS.daysText||iS.label}</span>${iA?`<button onclick="window.renewDocument('${w.id}','insurance')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>`:''}</div></div></div></div>`;
-                };
-
-                const renderGrp = (list, isUrg) => {
-                    if(!list.length) return ''; const grps={}; list.forEach(w=>{ const s=w.sponsorName||'بدون كفيل'; if(!grps[s]) grps[s]={phone:w.sponsorPhone, ws:[]}; grps[s].ws.push(w); });
-                    let html='<div class="columns-1 md:columns-2 gap-4">'; for(const[s,d] of Object.entries(grps)){
-                        html+=`<details class="break-inside-avoid mb-4 rounded-3xl border ${isUrg?'border-red-300 shadow-lg':'border-white/10 bg-white/5'} overflow-hidden group"><summary class="px-4 py-4 cursor-pointer flex justify-between items-center ${isUrg?'bg-red-50 text-red-900':'text-white hover:bg-white/10'}"><div class="flex items-center gap-3 overflow-hidden"><div class="w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center ${isUrg?'bg-red-200 text-red-600':'bg-white/20 text-white'}">💼</div><div class="truncate"><h4 class="text-sm font-black truncate">${s}</h4><p class="text-[10px] opacity-70" dir="ltr">${d.phone||'بدون'}</p></div></div><div class="flex items-center gap-1.5 flex-shrink-0"><button onclick="window.deleteSponsor(event, '${s}')" class="p-1 rounded-md text-red-500">🗑️</button><span class="${isUrg?'bg-red-600':'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${d.ws.length}</span></div></summary><div class="p-4 bg-black/10 flex flex-col gap-3">${d.ws.map(w=>renderCard(w)).join('')}</div></details>`;
-                    } return html+'</div>';
-                };
-
-                container.innerHTML = `
-                    ${uW.length>0 ? `<section class="mb-10"><h3 class="text-white font-black text-lg mb-5 px-2">🔴 إنذارات الإنتهاء الحرجة</h3>${renderGrp(uW,true)}</section>` : ''}
-                    <section><h3 class="text-white font-black text-lg mb-5 opacity-95 px-2">📁 سجل الكفلاء</h3>${sW.length>0 ? renderGrp(sW,false) : `<div class="text-center py-10 border-2 border-dashed border-white/20 rounded-3xl bg-black/20 text-white/50 text-sm font-bold">لا توجد سجلات حالياً</div>`}</section>
-                `;
-            } catch (error) {}
-        };
+        // يتم استدعاء هذه الدالة في نفس اللحظة التي تفتح فيها الصفحة (لا يوجد أي انتظار)
+        render();
 
     </script>
 </body>
