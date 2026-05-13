@@ -61,7 +61,7 @@
         <div class="bg-white rounded-3xl p-6 w-full max-w-md text-slate-800 shadow-2xl transform transition-all">
             <div class="flex justify-between items-center mb-5 border-b pb-3">
                 <h3 class="text-xl font-black text-[#8B0000]">⚙️ إعدادات المحرك الذكي</h3>
-                <button onclick="closeSettings()" class="text-slate-400 hover:text-red-500 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button onclick="window.closeSettings()" class="text-slate-400 hover:text-red-500 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <div class="space-y-4">
                 <div>
@@ -69,13 +69,13 @@
                     <input type="password" id="setting-apiKey" class="w-full input-field rounded-xl text-sm font-mono tracking-wider" placeholder="AIzaSy..." dir="ltr" autocomplete="new-password">
                 </div>
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm">
-                    <button onclick="testApiConnection()" class="w-full py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-black hover:bg-blue-50 transition shadow-sm flex justify-center items-center gap-2">
+                    <button onclick="window.testApiConnection()" class="w-full py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-black hover:bg-blue-50 transition shadow-sm flex justify-center items-center gap-2">
                         فحص الاتصال بالمحرك
                     </button>
                     <p id="api-test-result" class="text-[11px] mt-3 font-bold text-center hidden transition-all"></p>
                 </div>
             </div>
-            <button onclick="saveSettings()" class="w-full mt-6 py-3.5 bg-gradient-to-b from-[#8B0000] to-[#5c0000] text-white rounded-xl font-black hover:opacity-90 transition shadow-lg">حفظ واعتماد الإعدادات</button>
+            <button onclick="window.saveSettings()" class="w-full mt-6 py-3.5 bg-gradient-to-b from-[#8B0000] to-[#5c0000] text-white rounded-xl font-black hover:opacity-90 transition shadow-lg">حفظ واعتماد الإعدادات</button>
         </div>
     </div>
 
@@ -100,23 +100,16 @@
             window.db = db; window.collection = collection; window.addDoc = addDoc; window.deleteDoc = deleteDoc;
             window.doc = doc; window.onSnapshot = onSnapshot; window.updateDoc = updateDoc; window.setDoc = setDoc; window.writeBatch = writeBatch;
             window.isFirebaseOnline = true;
-            
-            document.dispatchEvent(new Event('firebaseReady'));
         } catch(e) {
             console.error("Firebase Init Error:", e);
             window.isFirebaseOnline = false;
-            document.dispatchEvent(new Event('firebaseReady'));
         }
-    </script>
 
-    <script>
         let apiKey = localStorage.getItem('mandoub_api_key') || "";
         let workers = [], renewals = [], isAuth = false, searchQuery = ""; 
         let dashConfig = { resetTimestamp: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(), manualStart: "", manualEnd: "" };
 
-        // ==========================================
-        // SMART AI FALLBACK LOGIC (هنا تم حل المشكلة)
-        // ==========================================
+        // SMART AI FALLBACK LOGIC
         const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-1.5-pro-latest'];
         
         async function fetchFromGemini(key, payload) {
@@ -144,7 +137,6 @@
             }
             return { success: false, error: lastErrorMsg };
         }
-        // ==========================================
 
         function sanitizeWorkers(list) { return list.map(w => ({ ...w, id: w.id || Date.now().toString(), createdAt: w.createdAt || new Date().toISOString() })); }
         function sanitizeRenewals(list) { return list.map(r => ({ ...r, id: r.id || Date.now().toString(), renewDate: r.renewDate || new Date().toISOString() })); }
@@ -155,7 +147,7 @@
                 el.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> 🟢 متصل ومحدث (مزامنة حية)';
                 el.className = 'text-[10px] px-2.5 py-1 rounded-full bg-green-900/50 text-green-100 flex items-center gap-1.5 border border-green-500/30';
             } else if (status === 'error') {
-                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span> 🔴 خطأ في الاتصال بقاعدة البيانات';
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span> 🔴 خطأ في الاتصال';
                 el.className = 'text-[10px] px-2.5 py-1 rounded-full bg-red-900/50 text-red-100 flex items-center gap-1.5 border border-red-500/30 cursor-pointer';
             } else if (status === 'loading') {
                 el.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-spin"></span> ⏳ جاري سحب البيانات...';
@@ -163,7 +155,7 @@
             }
         }
 
-        function startDataListeners() {
+        window.startDataListeners = function() {
             if (!window.isFirebaseOnline) { Swal.fire('خطأ', 'لم يتم الاتصال بقاعدة البيانات.', 'error'); return; }
             updateSyncUI('loading');
             try {
@@ -177,16 +169,14 @@
                     if (docSnap.exists()) { dashConfig = docSnap.data(); renderListsOnly(); }
                 });
             } catch (e) { updateSyncUI('error'); }
-        }
-
-        document.addEventListener('firebaseReady', () => { if(!isAuth) render(); });
+        };
 
         window.openSettings = () => { document.getElementById('setting-apiKey').value = apiKey; document.getElementById('settingsModal').classList.remove('hidden'); };
         window.closeSettings = () => { document.getElementById('settingsModal').classList.add('hidden'); };
         window.saveSettings = () => {
             const k = document.getElementById('setting-apiKey').value.trim();
             if(!k) return Swal.fire('خطأ', 'المفتاح مطلوب', 'error');
-            localStorage.setItem('mandoub_api_key', k); apiKey = k; closeSettings();
+            localStorage.setItem('mandoub_api_key', k); apiKey = k; window.closeSettings();
             Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم اعتماد الإعدادات', showConfirmButton:false, timer:2000});
         };
 
@@ -211,11 +201,8 @@
             v = v.trim();
             let parts = v.split(/[-/]/);
             if(parts.length === 3) {
-                if(parts[0].length <= 2) {
-                    return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                } else if (parts[0].length === 4) {
-                    return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-                }
+                if(parts[0].length <= 2) { return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`; } 
+                else if (parts[0].length === 4) { return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`; }
             }
             return v;
         };
@@ -223,9 +210,7 @@
         window.displayDate = function(dbDate) {
             if(!dbDate) return '';
             let parts = dbDate.split('-');
-            if(parts.length === 3 && parts[0].length === 4) {
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
+            if(parts.length === 3 && parts[0].length === 4) { return `${parts[2]}-${parts[1]}-${parts[0]}`; }
             return dbDate;
         };
 
@@ -257,7 +242,6 @@
             return { label: 'صالحة', bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', daysText: `باقي ${days} يوم`, isExpired: false, isWarning: false };
         }
 
-        // ================= EXCEL =================
         window.exportToExcel = () => {
             if (workers.length === 0) return Swal.fire("تنبيه", "السجلات فارغة", "info");
             const dataToExport = [...workers].sort((a,b)=>(a.sponsorName||'').localeCompare(b.sponsorName||'','ar')).map((w, i) => ({
@@ -308,7 +292,6 @@
             reader.readAsArrayBuffer(file);
         };
 
-        // ================= CRUD =================
         window.saveWorker = async () => {
             const data = {
                 sponsorName: document.getElementById('sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('sPhone').value.trim(),
@@ -406,13 +389,8 @@
                 preConfirm: () => { 
                     let v = document.getElementById('renew-date').value.trim(); 
                     if(!v) { Swal.showValidationMessage('مطلوب إدخال التاريخ'); return false; }
-                    
                     let formattedDate = window.parseManualDate(v);
-                    
-                    if (isNaN(new Date(formattedDate).getTime())) {
-                        Swal.showValidationMessage('صيغة التاريخ غير صحيحة، يرجى كتابته: يوم-شهر-سنة');
-                        return false;
-                    }
+                    if (isNaN(new Date(formattedDate).getTime())) { Swal.showValidationMessage('صيغة التاريخ غير صحيحة، يرجى كتابته: يوم-شهر-سنة'); return false; }
                     return formattedDate; 
                 }
             });
@@ -430,23 +408,18 @@
         window.aiDraftMessage = (workerId) => {
             const w = workers.find(x => x.id === workerId); let p = (w.sponsorPhone || "").replace(/\D/g,'');
             if (p.startsWith('0')) p = p.substring(1); if (p && !p.startsWith('971')) p = '971' + p; if(!p) return Swal.fire('تنبيه', 'لا يوجد رقم', 'warning');
-            
             window.updateDoc(window.doc(window.db, 'workers', workerId), { contacted: true }).catch(e=>{});
-
             const rDays = getDaysDiff(w.residencyEnd); const iDays = getDaysDiff(w.insuranceEnd);
             let expType = "", expDate = "";
             if (rDays <= 7 && iDays <= 7) { expType = "الإقامة والتأمين"; expDate = `${formatDateDDMMYYYY(w.residencyEnd)} و ${formatDateDDMMYYYY(w.insuranceEnd)}`; }
             else if (rDays <= 7) { expType = "الإقامة"; expDate = formatDateDDMMYYYY(w.residencyEnd); } else if (iDays <= 7) { expType = "التأمين"; expDate = formatDateDDMMYYYY(w.insuranceEnd); }
             const safeProf = w.profession && w.profession !== 'غير محدد' ? w.profession : 'غير محدد';
             const safeNat = w.nationality && w.nationality !== 'غير محدد' ? w.nationality : 'غير محدد';
-            
             let wNameClean = w.workerName ? w.workerName.split('|')[0].trim() : 'عامل';
-            
             const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${wNameClean} – المهنة ${safeProf}  – الجنسية ${safeNat} ، تنتهي بتاريخ ${expDate} (${expType}).\nوفي حال كان العامل لا يزال على كفالتكم، نرجو منكم التواصل  لاتخاذ إجراءات التجديد في أقرب وقت. ***\nمركز مندوبك | لتخليص المعاملات`;
             window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`, '_blank');
         };
 
-        // ================= UI RENDERING & DASHBOARD =================
         window.resetDashboard = async () => {
             Swal.fire({ title: 'تأكيد تصفير الدورة؟', icon: 'warning', showCancelButton: true, confirmButtonColor: '#8B0000', confirmButtonText: 'نعم', cancelButtonText: 'إلغاء'
             }).then(async (result) => {
@@ -459,61 +432,15 @@
             const addedInPeriod = workers.filter(w => w.createdAt && w.createdAt >= rTime).length;
             const renewedLog = renewals.filter(r => r.renewDate && r.renewDate >= rTime); const totalRenewed = renewedLog.length;
             let pct = addedInPeriod > 0 ? Math.min(100, Math.round((totalRenewed / addedInPeriod) * 100)) : 0;
-
             let tableRows = renewedLog.length > 0 ? [...renewedLog].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map((r, i) => `
-                <tr>
-                    <td>${i+1}</td>
-                    <td>${r.workerName ? r.workerName.replace('|', ' - ') : '---'}</td>
-                    <td>${r.sponsorName || '---'}</td>
-                    <td>${r.type || '---'}</td>
-                    <td dir="ltr">${formatDateDDMMYYYY(r.renewDate)}</td>
-                </tr>
+                <tr><td>${i+1}</td><td>${r.workerName ? r.workerName.replace('|', ' - ') : '---'}</td><td>${r.sponsorName || '---'}</td><td>${r.type || '---'}</td><td dir="ltr">${formatDateDDMMYYYY(r.renewDate)}</td></tr>
             `).join('') : `<tr><td colspan="5" style="text-align:center;">لا توجد عمليات تجديد مسجلة</td></tr>`;
-
             const printContent = `
                 <html dir="rtl" lang="ar">
-                <head>
-                    <title>تقرير الإنجازات - مكتب مندوبك</title>
-                    <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
-                        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #8B0000; padding-bottom: 20px; }
-                        .header h1 { color: #8B0000; margin: 0 0 10px 0; font-size: 28px; }
-                        .header p { margin: 0; color: #666; font-size: 14px; }
-                        .stats-grid { display: flex; justify-content: space-between; margin-bottom: 40px; gap: 20px; }
-                        .stat-box { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; }
-                        .stat-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: normal; }
-                        .stat-box .val { font-size: 28px; font-weight: bold; color: #0f172a; margin: 0; }
-                        .stat-box .val.green { color: #16a34a; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-                        th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
-                        th { background-color: #f1f5f9; color: #334155; font-weight: bold; }
-                        tr:nth-child(even) { background-color: #f8fafc; }
-                        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>📊 تقرير لوحة الإنجازات</h1>
-                        <p>مركز مندوبك - برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
-                        <p>تاريخ استخراج التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-box"><h3>سجلات مسجلة حديثاً</h3><p class="val">${addedInPeriod}</p></div>
-                        <div class="stat-box"><h3>سجلات تم تجديدها</h3><p class="val green">${totalRenewed}</p></div>
-                        <div class="stat-box"><h3>نسبة الإنجاز</h3><p class="val">${pct}%</p></div>
-                    </div>
-                    <h3 style="color: #334155; margin-bottom: 15px;">سجل التجديدات الأخيرة:</h3>
-                    <table>
-                        <thead><tr><th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">نوع الوثيقة</th><th width="20%">تاريخ التجديد بالنظام</th></tr></thead>
-                        <tbody>${tableRows}</tbody>
-                    </table>
-                    <div class="footer">تم إنشاء هذا التقرير آلياً بواسطة نظام "مركز مندوبك"</div>
-                </body>
-                </html>
+                <head><title>تقرير الإنجازات - مكتب مندوبك</title><style>body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; line-height: 1.6; } .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #8B0000; padding-bottom: 20px; } .header h1 { color: #8B0000; margin: 0 0 10px 0; font-size: 28px; } .header p { margin: 0; color: #666; font-size: 14px; } .stats-grid { display: flex; justify-content: space-between; margin-bottom: 40px; gap: 20px; } .stat-box { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; } .stat-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: normal; } .stat-box .val { font-size: 28px; font-weight: bold; color: #0f172a; margin: 0; } .stat-box .val.green { color: #16a34a; } table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; } th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; } th { background-color: #f1f5f9; color: #334155; font-weight: bold; } tr:nth-child(even) { background-color: #f8fafc; } .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #94a3b8; }</style></head>
+                <body><div class="header"><h1>📊 تقرير لوحة الإنجازات</h1><p>مركز مندوبك - برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p><p>تاريخ استخراج التقرير: ${new Date().toLocaleDateString('ar-EG')}</p></div><div class="stats-grid"><div class="stat-box"><h3>سجلات مسجلة حديثاً</h3><p class="val">${addedInPeriod}</p></div><div class="stat-box"><h3>سجلات تم تجديدها</h3><p class="val green">${totalRenewed}</p></div><div class="stat-box"><h3>نسبة الإنجاز</h3><p class="val">${pct}%</p></div></div><h3 style="color: #334155; margin-bottom: 15px;">سجل التجديدات الأخيرة:</h3><table><thead><tr><th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">نوع الوثيقة</th><th width="20%">تاريخ التجديد بالنظام</th></tr></thead><tbody>${tableRows}</tbody></table><div class="footer">تم إنشاء هذا التقرير آلياً بواسطة نظام "مركز مندوبك"</div></body></html>
             `;
-            const printWin = window.open('', '', 'width=900,height=700');
-            printWin.document.open(); printWin.document.write(printContent); printWin.document.close();
-            printWin.focus(); setTimeout(() => { printWin.print(); printWin.close(); }, 500);
+            const printWin = window.open('', '', 'width=900,height=700'); printWin.document.open(); printWin.document.write(printContent); printWin.document.close(); printWin.focus(); setTimeout(() => { printWin.print(); printWin.close(); }, 500);
         };
 
         function renderDashboard() {
@@ -541,10 +468,10 @@
                     </summary>
                     <div class="p-5 border-t border-white/10 bg-black/10 flex flex-col gap-4">
                         <div class="flex flex-wrap gap-2 justify-between items-center">
-                            <div class="flex gap-2"><input type="text" value="${dashConfig.manualStart || ''}" onchange="updateDashText('start', this.value)" placeholder="من تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"><input type="text" value="${dashConfig.manualEnd || ''}" onchange="updateDashText('end', this.value)" placeholder="إلى تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"></div>
+                            <div class="flex gap-2"><input type="text" value="${dashConfig.manualStart || ''}" onchange="window.updateDashText('start', this.value)" placeholder="من تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"><input type="text" value="${dashConfig.manualEnd || ''}" onchange="window.updateDashText('end', this.value)" placeholder="إلى تاريخ..." class="w-24 text-[10px] p-1.5 rounded text-black text-center"></div>
                             <div class="flex gap-2">
-                                <button onclick="printDashboard()" class="bg-slate-600/20 text-slate-200 hover:bg-slate-600 hover:text-white px-4 py-2 rounded-xl text-[11px] font-black transition border border-slate-500/30">طباعة التقرير 🖨️</button>
-                                <button onclick="resetDashboard()" class="bg-red-600/20 text-red-200 hover:bg-red-600 px-4 py-2 rounded-xl text-[11px] font-black transition border border-red-500/30">تصفير العداد</button>
+                                <button onclick="window.printDashboard()" class="bg-slate-600/20 text-slate-200 hover:bg-slate-600 hover:text-white px-4 py-2 rounded-xl text-[11px] font-black transition border border-slate-500/30">طباعة التقرير 🖨️</button>
+                                <button onclick="window.resetDashboard()" class="bg-red-600/20 text-red-200 hover:bg-red-600 px-4 py-2 rounded-xl text-[11px] font-black transition border border-red-500/30">تصفير العداد</button>
                             </div>
                         </div>
                         <div class="bg-black/30 rounded-xl p-3 mt-2 max-h-40 overflow-y-auto custom-scrollbar space-y-2">${logHtml}</div>
@@ -556,7 +483,6 @@
             const rStat = getStatus(worker.residencyEnd); const iStat = getStatus(worker.insuranceEnd);
             const isWarning = rStat.isWarning || iStat.isWarning;
             const rAlert = getDaysDiff(worker.residencyEnd) <= 7; const iAlert = getDaysDiff(worker.insuranceEnd) <= 7;
-
             let displayName = worker.workerName || 'عامل بدون اسم';
             let nameHtml = `<h5 class="text-sm font-black text-slate-800">${displayName}</h5>`;
             if(displayName.includes('|')) {
@@ -568,25 +494,23 @@
                 <div class="${isWarning ? 'bg-white border-red-500 shadow-md scale-[1.01]' : 'bg-slate-50 border-slate-200'} rounded-2xl p-4 transition-all duration-300 border-2 relative group">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-slate-200/80 gap-3">
                         <div class="flex flex-wrap items-center gap-2">
-                            <div>
-                                ${nameHtml}
-                            </div>
+                            <div>${nameHtml}</div>
                             <span class="text-[10px] bg-slate-200/70 text-slate-600 px-2.5 py-1 rounded-md font-bold">${worker.profession || '-'} | ${worker.nationality || '-'}</span>
                         </div>
                         <div class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                            <button onclick="aiDraftMessage('${worker.id}')" class="flex-1 sm:flex-none bg-[#25D366]/10 text-[#1da851] hover:bg-[#25D366] hover:text-white px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#25D366]/30">واتساب</button>
-                            <button onclick="editWorker('${worker.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-white p-1.5 rounded-xl transition border border-blue-200 shadow-sm">✏️</button>
-                            <button onclick="deleteWorker('${worker.id}')" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white p-1.5 rounded-xl transition border border-red-200 shadow-sm">🗑️</button>
+                            <button onclick="window.aiDraftMessage('${worker.id}')" class="flex-1 sm:flex-none bg-[#25D366]/10 text-[#1da851] hover:bg-[#25D366] hover:text-white px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#25D366]/30">واتساب</button>
+                            <button onclick="window.editWorker('${worker.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-white p-1.5 rounded-xl transition border border-blue-200 shadow-sm">✏️</button>
+                            <button onclick="window.deleteWorker('${worker.id}')" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white p-1.5 rounded-xl transition border border-red-200 shadow-sm">🗑️</button>
                         </div>
                     </div>
                     <div class="flex gap-3 w-full">
                         <div class="flex-1 flex justify-between items-center bg-white border ${rStat.border} ${rAlert?'urgent-pulse':''} p-3 rounded-xl shadow-sm">
                             <div><span class="text-[9px] text-slate-400 font-bold mb-1 block">الإقامة</span><span class="text-xs font-black text-slate-700" dir="ltr">${formatDateDDMMYYYY(worker.residencyEnd)}</span></div>
-                            <div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${rStat.text}">${rStat.daysText || rStat.label}</span>${rAlert ? `<button onclick="renewDocument('${worker.id}', 'residency')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}</div>
+                            <div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${rStat.text}">${rStat.daysText || rStat.label}</span>${rAlert ? `<button onclick="window.renewDocument('${worker.id}', 'residency')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}</div>
                         </div>
                         <div class="flex-1 flex justify-between items-center bg-white border ${iStat.border} ${iAlert?'urgent-pulse':''} p-3 rounded-xl shadow-sm">
                             <div><span class="text-[9px] text-slate-400 font-bold mb-1 block">التأمين</span><span class="text-xs font-black text-slate-700" dir="ltr">${formatDateDDMMYYYY(worker.insuranceEnd)}</span></div>
-                            <div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${iStat.text}">${iStat.daysText || iStat.label}</span>${iAlert ? `<button onclick="renewDocument('${worker.id}', 'insurance')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}</div>
+                            <div class="flex flex-col items-end gap-1"><span class="text-[10px] font-black ${iStat.text}">${iStat.daysText || iStat.label}</span>${iAlert ? `<button onclick="window.renewDocument('${worker.id}', 'insurance')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}</div>
                         </div>
                     </div>
                 </div>`;
@@ -610,7 +534,7 @@
                         </div>
                         <div class="flex items-center gap-1.5 flex-shrink-0">
                             ${isContacted ? `<span class="bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">✓ تواصلنا</span>` : ''}
-                            <button onclick="deleteSponsor(event, '${sponsorName}')" class="${isUrgentSection?'bg-red-200 hover:bg-red-500 text-red-700 hover:text-white':'bg-white/10 hover:bg-red-500 text-white'} p-1 rounded-md transition flex items-center justify-center" title="إبادة الكفيل وعماله">🗑️</button>
+                            <button onclick="window.deleteSponsor(event, '${sponsorName}')" class="${isUrgentSection?'bg-red-200 hover:bg-red-500 text-red-700 hover:text-white':'bg-white/10 hover:bg-red-500 text-white'} p-1 rounded-md transition flex items-center justify-center" title="إبادة الكفيل وعماله">🗑️</button>
                             <span class="${isUrgentSection?'bg-red-600':'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${data.workers.length}</span>
                         </div>
                     </summary>
@@ -619,7 +543,7 @@
             } return html + '</div>';
         }
 
-        function renderListsOnly() {
+        window.renderListsOnly = function() {
             try {
                 const container = document.getElementById('lists-container'); if(!container) return;
                 const totalCounterEl = document.getElementById('total-counter'); if(totalCounterEl) totalCounterEl.innerText = workers.length;
@@ -635,78 +559,42 @@
                 `;
                 initFlatpickr();
             } catch (error) {}
-        }
-
-        // ================= AI OCR & FILE HANDLING =================
-        window.handleImageFile = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            processImageForAI(file);
-            e.target.value = ''; 
         };
+
+        window.handleImageFile = async (e) => { const file = e.target.files[0]; if (!file) return; processImageForAI(file); e.target.value = ''; };
 
         window.handlePaste = async (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let item of items) { 
-                if (item.type.indexOf("image") !== -1) { 
-                    e.preventDefault(); 
-                    const file = item.getAsFile(); 
-                    processImageForAI(file);
-                    break;
-                } 
+                if (item.type.indexOf("image") !== -1) { e.preventDefault(); const file = item.getAsFile(); processImageForAI(file); break; } 
             }
         };
 
         async function processImageForAI(blob) {
-            const statusDiv = document.getElementById('ocr-status');
-            const dropZone = document.getElementById('drop-zone');
-            
+            const statusDiv = document.getElementById('ocr-status'); const dropZone = document.getElementById('drop-zone');
             if (!apiKey || apiKey.trim() === "") return Swal.fire('تنبيه', 'يرجى إدخال مفتاح الذكاء الاصطناعي من الإعدادات ⚙️', 'warning');
             
             try {
                 const base64Data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
                 const dataUrl = `data:${blob.type || "image/png"};base64,${base64Data}`;
                 
-                dropZone.classList.add('hidden');
-                statusDiv.classList.remove('hidden');
-                
+                dropZone.classList.add('hidden'); statusDiv.classList.remove('hidden');
                 statusDiv.style.backgroundImage = `linear-gradient(rgba(239, 246, 255, 0.85), rgba(239, 246, 255, 0.95)), url('${dataUrl}')`;
-                statusDiv.style.backgroundSize = 'cover';
-                statusDiv.style.backgroundPosition = 'center';
+                statusDiv.style.backgroundSize = 'cover'; statusDiv.style.backgroundPosition = 'center';
                 
-                let aiPrompt = `أنت محرك ذكاء اصطناعي خارق لاستخراج البيانات (OCR). 
-المهمة: استخراج بيانات العمال من هذه الصورة (تأشيرات إقامة، هويات، كشوفات).
-التعليمات الصارمة جداً: 
-أرجع النتيجة **فقط** على شكل مصفوفة JSON (JSON Array) صالحة تماماً، بدون أي كلمة إضافية.
-يجب أن يحتوي كل كائن (Object) على المفاتيح التالية حصراً:
-- "workerName": استخرج الاسم باللغة العربية والاسم باللغة الإنجليزية معاً، وافصل بينهما برمز الخط العمودي (|) هكذا بالضبط: "الاسم بالعربي | English Name".
-- "nationality": الجنسية باللغة العربية (ابحث عن حقل الجنسية).
-- "profession": المهنة باللغة العربية (ابحث عن حقل المهنة).
-- "residencyEnd": تاريخ "انتهاء التصريح" أو "تاريخ الانتهاء" (احذر: تجاهل "تاريخ انتهاء جواز" أو "انتهاء الجواز" تماماً). حول التاريخ المستخرج إلى الصيغة القياسية "YYYY-MM-DD".
-استخرج جميع الأشخاص الموجودين في الصورة بدقة متناهية.`;
-
+                let aiPrompt = `أنت محرك ذكاء اصطناعي خارق لاستخراج البيانات (OCR). المهمة: استخراج بيانات العمال من هذه الصورة (تأشيرات إقامة، هويات، كشوفات). التعليمات الصارمة جداً: أرجع النتيجة **فقط** على شكل مصفوفة JSON (JSON Array) صالحة تماماً، بدون أي كلمة إضافية. يجب أن يحتوي كل كائن (Object) على المفاتيح التالية حصراً: - "workerName": استخرج الاسم باللغة العربية والاسم باللغة الإنجليزية معاً، وافصل بينهما برمز الخط العمودي (|) هكذا بالضبط: "الاسم بالعربي | English Name". - "nationality": الجنسية باللغة العربية (ابحث عن حقل الجنسية). - "profession": المهنة باللغة العربية (ابحث عن حقل المهنة). - "residencyEnd": تاريخ "انتهاء التصريح" أو "تاريخ الانتهاء" (احذر: تجاهل "تاريخ انتهاء جواز" أو "انتهاء الجواز" تماماً). حول التاريخ المستخرج إلى الصيغة القياسية "YYYY-MM-DD". استخرج جميع الأشخاص الموجودين في الصورة بدقة متناهية.`;
                 const payload = { contents: [{ role: "user", parts: [{ text: aiPrompt }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
                 
                 const apiRes = await fetchFromGemini(apiKey, payload);
                 if (!apiRes.success) throw new Error(apiRes.error);
                 
                 let rawText = apiRes.result.candidates[0].content.parts[0].text;
-                
                 let dataArray = null;
                 rawText = rawText.replace(/```json/gi, '').replace(/
 ```/g, '').trim();
+                const matchArray = rawText.match(/\[[\s\S]*\]/); const matchObject = rawText.match(/\{[\s\S]*\}/);
                 
-                const matchArray = rawText.match(/\[[\s\S]*\]/);
-                const matchObject = rawText.match(/\{[\s\S]*\}/);
-                
-                if (matchArray) {
-                    dataArray = JSON.parse(matchArray[0]);
-                } else if (matchObject) {
-                    dataArray = [JSON.parse(matchObject[0])];
-                } else {
-                    throw new Error("تعذر فهم رد الذكاء الاصطناعي");
-                }
-                
+                if (matchArray) { dataArray = JSON.parse(matchArray[0]); } else if (matchObject) { dataArray = [JSON.parse(matchObject[0])]; } else { throw new Error("تعذر فهم رد الذكاء الاصطناعي"); }
                 if (!Array.isArray(dataArray)) dataArray = [dataArray];
                 if (dataArray.length === 0) throw new Error("لم يتم العثور على بيانات");
                 
@@ -716,9 +604,7 @@
                     if(d.nationality) document.getElementById('wNationality').value = d.nationality; 
                     if(d.profession) document.getElementById('wProfession').value = d.profession;
                     if(d.residencyEnd && d.residencyEnd!=='غير محدد') document.getElementById('rEnd').value = window.displayDate(d.residencyEnd);
-                    
                     document.getElementById('iEnd').value = ''; 
-                    
                     Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تفريغ البيانات بنجاح', showConfirmButton:false, timer:2000});
                 } else if (dataArray.length > 1) {
                     const { value: batchData } = await Swal.fire({
@@ -732,80 +618,45 @@
                                 ${dataArray.map((w, i) => {
                                     let displayName = w.workerName || 'بدون اسم';
                                     let nameHtml = `<b class="text-[#8B0000] truncate block w-40" dir="auto">${displayName}</b>`;
-                                    if(displayName.includes('|')) {
-                                        let parts = displayName.split('|');
-                                        nameHtml = `<b class="text-[#8B0000] block w-40 truncate" dir="auto">${parts[0].trim()}</b><span class="text-[9px] text-slate-500 font-bold block truncate w-40" dir="ltr">${parts[1].trim()}</span>`;
-                                    }
-                                    return `
-                                    <div class="border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0 flex justify-between items-center">
-                                        <div class="truncate pl-2">
-                                            ${nameHtml}
-                                            <span class="text-[9px] text-slate-500 mt-1 block">${w.nationality || '-'} | ${w.profession || '-'}</span>
-                                        </div>
-                                        <span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold border border-red-100 flex-shrink-0">${window.displayDate(w.residencyEnd) || '-'}</span>
-                                    </div>
-                                    `;
+                                    if(displayName.includes('|')) { let parts = displayName.split('|'); nameHtml = `<b class="text-[#8B0000] block w-40 truncate" dir="auto">${parts[0].trim()}</b><span class="text-[9px] text-slate-500 font-bold block truncate w-40" dir="ltr">${parts[1].trim()}</span>`; }
+                                    return `<div class="border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0 flex justify-between items-center"><div class="truncate pl-2">${nameHtml}<span class="text-[9px] text-slate-500 mt-1 block">${w.nationality || '-'} | ${w.profession || '-'}</span></div><span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold border border-red-100 flex-shrink-0">${window.displayDate(w.residencyEnd) || '-'}</span></div>`;
                                 }).join('')}
                             </div>
                         `,
                         focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ جميع السجلات', cancelButtonText: 'إلغاء', confirmButtonColor: '#8B0000',
-                        preConfirm: () => {
-                            return { sponsorName: document.getElementById('batch-sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('batch-sPhone').value.trim() }
-                        }
+                        preConfirm: () => { return { sponsorName: document.getElementById('batch-sName').value.trim() || 'بدون كفيل', sponsorPhone: document.getElementById('batch-sPhone').value.trim() } }
                     });
 
                     if (batchData) {
                         Swal.fire({ title: 'جاري الحفظ الجماعي...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                        const batch = window.writeBatch(window.db);
-                        let addedCount = 0;
+                        const batch = window.writeBatch(window.db); let addedCount = 0;
                         for(let w of dataArray) {
                             if(!w.workerName) continue;
-                            
-                            const isDuplicate = workers.some(existing => {
-                                return existing.workerName && existing.workerName.trim() === w.workerName.trim() && existing.sponsorName.trim() === batchData.sponsorName.trim();
-                            });
-                            
+                            const isDuplicate = workers.some(existing => existing.workerName && existing.workerName.trim() === w.workerName.trim() && existing.sponsorName.trim() === batchData.sponsorName.trim());
                             if(isDuplicate) continue;
-                            
                             const ref = window.doc(window.collection(window.db, 'workers'));
-                            batch.set(ref, {
-                                sponsorName: batchData.sponsorName, sponsorPhone: batchData.sponsorPhone,
-                                workerName: w.workerName || '',
-                                nationality: w.nationality || '', profession: w.profession || '',
-                                residencyEnd: w.residencyEnd && w.residencyEnd !== 'غير محدد' ? w.residencyEnd : '',
-                                insuranceEnd: '',
-                                createdAt: new Date().toISOString(), contacted: false
-                            });
+                            batch.set(ref, { sponsorName: batchData.sponsorName, sponsorPhone: batchData.sponsorPhone, workerName: w.workerName || '', nationality: w.nationality || '', profession: w.profession || '', residencyEnd: w.residencyEnd && w.residencyEnd !== 'غير محدد' ? w.residencyEnd : '', insuranceEnd: '', createdAt: new Date().toISOString(), contacted: false });
                             addedCount++;
                         }
-                        await batch.commit();
-                        Swal.fire('نجاح', `تم إضافة ${addedCount} سجلات بنجاح. (تم تجاهل الأسماء المكررة إن وجدت)`, 'success');
+                        await batch.commit(); Swal.fire('نجاح', `تم إضافة ${addedCount} سجلات بنجاح. (تم تجاهل الأسماء المكررة إن وجدت)`, 'success');
                     }
                 }
-            } catch (err) { 
-                console.error("OCR ERROR:", err);
-                Swal.fire('لم نتمكن من القراءة!', 'عذراً، لم يستطع المحرك العثور على بيانات واضحة في الصورة، أو أن الصورة غير مدعومة.', 'error'); 
-            } finally {
-                dropZone.classList.remove('hidden');
-                statusDiv.classList.add('hidden');
-                statusDiv.style.backgroundImage = 'none'; 
-            }
+            } catch (err) { Swal.fire('لم نتمكن من القراءة!', 'عذراً، لم يستطع المحرك العثور على بيانات واضحة في الصورة.', 'error'); } 
+            finally { dropZone.classList.remove('hidden'); statusDiv.classList.add('hidden'); statusDiv.style.backgroundImage = 'none'; }
         }
 
-        window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); renderListsOnly(); };
+        window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); window.renderListsOnly(); };
         
         window.login = () => { 
             const userPass = document.getElementById('pass').value;
             if (btoa(userPass) === 'YTE5ODk=') { 
-                isAuth = true; render(); startDataListeners(); 
-            } else { 
-                Swal.fire('الوصول مرفوض', 'كلمة المرور غير صحيحة', 'error'); 
-            } 
+                isAuth = true; window.renderApp(); window.startDataListeners(); 
+            } else { Swal.fire('الوصول مرفوض', 'كلمة المرور غير صحيحة', 'error'); } 
         };
         
-        window.logout = () => { isAuth = false; workers = []; render(); };
+        window.logout = () => { isAuth = false; workers = []; window.renderApp(); };
 
-        function render() {
+        window.renderApp = function() {
             const app = document.getElementById('app');
             if (!isAuth) {
                 app.innerHTML = `
@@ -813,27 +664,12 @@
                         <div class="glass-card p-10 rounded-[3rem] w-full max-w-md text-center">
                             <h2 class="text-4xl font-black text-white mb-2 shadow-sm">مكتب مندوبك</h2>
                             <p class="text-sm font-bold text-[#FFD700] mb-8 uppercase">برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
-                            <form autocomplete="off" onsubmit="event.preventDefault(); login();">
+                            <form autocomplete="off" onsubmit="event.preventDefault(); window.login();">
                                 <input type="password" id="pass" placeholder="مفتاح المرور..." class="w-full p-4 input-field rounded-2xl text-center font-black text-lg mb-6" autocomplete="new-password">
                                 <button type="submit" class="w-full py-4 bg-white text-[#8B0000] rounded-2xl font-black shadow-lg hover:scale-[1.02] transition">دخول للنظام</button>
                             </form>
                         </div>
                     </div>`; 
-                    
-                setTimeout(() => {
-                    const passInput = document.getElementById('pass');
-                    if(passInput) {
-                        const observer = new MutationObserver((mutations) => {
-                            mutations.forEach((mutation) => {
-                                if (mutation.attributeName === 'type' && passInput.getAttribute('type') !== 'password') {
-                                    passInput.setAttribute('type', 'password');
-                                    passInput.value = ''; 
-                                }
-                            });
-                        });
-                        observer.observe(passInput, { attributes: true });
-                    }
-                }, 50);
                 return;
             }
 
@@ -853,7 +689,7 @@
                         </div>
                         <div class="flex-1 max-w-lg w-full px-0 md:px-4">
                              <div class="relative group">
-                                <input type="search" id="searchInput" oninput="handleSearch(event)" placeholder="البحث الذكي (اسم، هاتف، مهنة)..." class="w-full py-3.5 pr-12 pl-5 bg-white/10 border border-white/20 rounded-2xl text-sm font-bold text-white placeholder-white/50 focus:outline-none focus:bg-white/20 focus:border-white/50 shadow-inner transition-all hover:bg-white/15">
+                                <input type="search" id="searchInput" oninput="window.handleSearch(event)" placeholder="البحث الذكي (اسم، هاتف، مهنة)..." class="w-full py-3.5 pr-12 pl-5 bg-white/10 border border-white/20 rounded-2xl text-sm font-bold text-white placeholder-white/50 focus:outline-none focus:bg-white/20 focus:border-white/50 shadow-inner transition-all hover:bg-white/15">
                              </div>
                         </div>
                         <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
@@ -863,28 +699,28 @@
                             </div>
                             <div class="flex flex-col gap-2 flex-1 md:flex-none">
                                 <div class="flex gap-2">
-                                    <button onclick="exportToExcel()" class="flex-1 px-4 py-2 bg-gradient-to-b from-[#25D366] to-[#1da851] text-white rounded-xl text-xs font-black shadow-lg hover:scale-[1.05] border border-green-400 transition-transform" title="تصدير إكسيل">تصدير إكسيل</button>
+                                    <button onclick="window.exportToExcel()" class="flex-1 px-4 py-2 bg-gradient-to-b from-[#25D366] to-[#1da851] text-white rounded-xl text-xs font-black shadow-lg hover:scale-[1.05] border border-green-400 transition-transform" title="تصدير إكسيل">تصدير إكسيل</button>
                                     <div class="relative flex-1">
-                                        <input type="file" id="excelUpload" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+                                        <input type="file" id="excelUpload" accept=".xlsx, .xls" class="hidden" onchange="window.importFromExcel(event)">
                                         <button onclick="document.getElementById('excelUpload').click()" class="w-full px-4 py-2 bg-gradient-to-b from-blue-500 to-blue-700 text-white rounded-xl text-xs font-black shadow-lg hover:scale-[1.05] border border-blue-400 transition-transform" title="استيراد إكسيل">استيراد إكسيل</button>
                                     </div>
-                                    <button onclick="openSettings()" class="bg-slate-700/80 hover:bg-slate-600 text-white p-2 rounded-xl border border-slate-500 shadow-md transition-all">⚙️</button>
+                                    <button onclick="window.openSettings()" class="bg-slate-700/80 hover:bg-slate-600 text-white p-2 rounded-xl border border-slate-500 shadow-md transition-all">⚙️</button>
                                 </div>
-                                <button onclick="logout()" class="w-full px-4 py-2 bg-white/5 text-white/70 rounded-xl text-[11px] font-black border border-white/10 hover:bg-red-500 hover:text-white transition-colors">تسجيل الخروج</button>
+                                <button onclick="window.logout()" class="w-full px-4 py-2 bg-white/5 text-white/70 rounded-xl text-[11px] font-black border border-white/10 hover:bg-red-500 hover:text-white transition-colors">تسجيل الخروج</button>
                             </div>
                         </div>
                     </header>
 
                     <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
                         <div class="xl:col-span-4">
-                            <div class="bg-white p-6 rounded-[2rem] sticky top-6 shadow-2xl" onpaste="handlePaste(event)">
+                            <div class="bg-white p-6 rounded-[2rem] sticky top-6 shadow-2xl" onpaste="window.handlePaste(event)">
                                 <h3 class="text-xl font-black mb-6 text-slate-800 flex items-center gap-2">➕ تقييد سجل جديد</h3>
                                 
                                 <div id="drop-zone" onclick="document.getElementById('aiImageUpload').click()" class="bg-[#f8fafc] border-2 border-dashed border-slate-400 rounded-2xl p-6 text-center cursor-pointer mb-6 hover:bg-slate-50 transition relative">
-                                    <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="handleImageFile(event)">
+                                    <input type="file" id="aiImageUpload" accept="image/*" class="hidden" onchange="window.handleImageFile(event)">
                                     <div class="text-3xl mb-1">📷</div>
                                     <p class="text-[13px] font-black text-slate-700">اضغط هنا أو (Ctrl+V) لإدراج صورة الكشف/الهوية</p>
-                                    <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">الاستخراج الآلي السريع</p>
+                                    <p class="text-[10px] text-slate-500 mt-2 font-bold bg-white px-2 py-0.5 rounded shadow-sm inline-block border">ال الاستخراج الآلي السريع</p>
                                 </div>
                                 <div id="ocr-status" class="hidden py-10 text-center text-sm font-black text-blue-800 animate-pulse bg-blue-50 border border-blue-100 rounded-xl mb-6 shadow-inner">يتم استخراج البيانات بلمح البصر... ⚡</div>
 
@@ -892,16 +728,14 @@
                                     <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">جهة الكفالة</label><input id="sName" list="sponsors-list" placeholder="اكتب أو اختر اسم الكفيل" class="w-full input-field rounded-xl text-sm font-black bg-slate-50 outline-none" autocomplete="off"><datalist id="sponsors-list">${datalistOptions}</datalist></div>
                                     <div class="relative"><label class="absolute -top-2.5 right-3 bg-white px-1 text-[10px] font-black text-slate-500">هاتف التواصل</label><input id="sPhone" placeholder="05X XXX XXXX" type="tel" class="w-full input-field rounded-xl text-sm font-bold bg-slate-50 outline-none text-left" dir="ltr" autocomplete="off"></div>
                                     <div class="border-t-2 border-dashed border-slate-200 my-4 relative"><span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[10px] text-slate-400 font-bold">البيانات</span></div>
-                                    
                                     <input id="wName" placeholder="الاسم (عربي أو إنجليزي)" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none" autocomplete="off">
-                                    
                                     <div class="flex gap-3"><input id="wNationality" placeholder="الجنسية" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none" autocomplete="off"><input id="wProfession" placeholder="المهنة" class="w-1/2 input-field rounded-xl text-xs font-bold bg-slate-50 outline-none" autocomplete="off"></div>
                                     <div class="flex gap-3 bg-[#f8fafc] p-4 rounded-xl border border-slate-200 mt-2">
                                         <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔴 إنتهاء الإقامة</label><input type="text" dir="ltr" id="rEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
                                         <div class="w-1/2"><label class="text-[10px] font-black text-slate-600 mb-1.5 block">🔵 إنتهاء التأمين (يدوي)</label><input type="text" dir="ltr" id="iEnd" class="w-full border-2 border-slate-300 rounded-lg p-2.5 text-xs outline-none bg-white font-black text-slate-800 text-center" placeholder="يوم-شهر-سنة" autocomplete="off"></div>
                                     </div>
                                 </div>
-                                <button onclick="saveWorker()" class="w-full mt-6 py-4 bg-gradient-to-l from-[#8B0000] to-[#600000] text-white rounded-xl font-black shadow-lg hover:scale-[1.02] transition-transform text-sm">اعتماد وحفظ السجل</button>
+                                <button onclick="window.saveWorker()" class="w-full mt-6 py-4 bg-gradient-to-l from-[#8B0000] to-[#600000] text-white rounded-xl font-black shadow-lg hover:scale-[1.02] transition-transform text-sm">اعتماد وحفظ السجل</button>
                             </div>
                         </div>
                         <div id="lists-container" class="xl:col-span-8"></div>
@@ -909,7 +743,11 @@
                 </div>
             `;
             initFlatpickr();
-        }
+        };
+
+        // التشغيل الفوري بعد دمج الكود
+        if (!isAuth) window.renderApp();
+
     </script>
 </body>
 </html>
