@@ -115,9 +115,9 @@
         let dashConfig = { resetTimestamp: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString(), manualStart: "", manualEnd: "" };
 
         // ==========================================
-        // SMART AI FALLBACK LOGIC (Updated & Hardened)
+        // SMART AI FALLBACK LOGIC (هنا تم حل المشكلة)
         // ==========================================
-        const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
+        const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-1.5-pro-latest'];
         
         async function fetchFromGemini(key, payload) {
             let savedModel = localStorage.getItem('mandoub_working_model');
@@ -463,7 +463,7 @@
             let tableRows = renewedLog.length > 0 ? [...renewedLog].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map((r, i) => `
                 <tr>
                     <td>${i+1}</td>
-                    <td>${r.workerName || '---'}</td>
+                    <td>${r.workerName ? r.workerName.replace('|', ' - ') : '---'}</td>
                     <td>${r.sponsorName || '---'}</td>
                     <td>${r.type || '---'}</td>
                     <td dir="ltr">${formatDateDDMMYYYY(r.renewDate)}</td>
@@ -575,7 +575,7 @@
                         </div>
                         <div class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                             <button onclick="aiDraftMessage('${worker.id}')" class="flex-1 sm:flex-none bg-[#25D366]/10 text-[#1da851] hover:bg-[#25D366] hover:text-white px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#25D366]/30">واتساب</button>
-                            <button onclick="editWorker('${worker.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white p-1.5 rounded-xl transition border border-blue-200 shadow-sm">✏️</button>
+                            <button onclick="editWorker('${worker.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-white p-1.5 rounded-xl transition border border-blue-200 shadow-sm">✏️</button>
                             <button onclick="deleteWorker('${worker.id}')" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white p-1.5 rounded-xl transition border border-red-200 shadow-sm">🗑️</button>
                         </div>
                     </div>
@@ -674,36 +674,41 @@
                 statusDiv.style.backgroundSize = 'cover';
                 statusDiv.style.backgroundPosition = 'center';
                 
-                // هندسة أوامر صارمة جداً (تشبه عمل إحداثيات Azure Form Recognizer)
-                let aiPrompt = `أنت نظام OCR متقدم جداً. اعمل بآلية (Bounding Box) لاستخراج 4 بيانات فقط بدقة متناهية من الصورة:
-1. "workerName": الاسم الكامل. يجب سحب الاسم بالعربي والاسم بالانجليزي معاً وفصلهم بعلامة | (مثال: محمد | Mohammed).
-2. "nationality": الجنسية (بالعربي).
-3. "profession": المهنة (بالعربي).
-4. "residencyEnd": تاريخ "انتهاء التصريح" حصراً. تجاهل أي تاريخ يخص الجواز. حوله لصيغة YYYY-MM-DD.
+                let aiPrompt = `أنت محرك ذكاء اصطناعي خارق لاستخراج البيانات (OCR). 
+المهمة: استخراج بيانات العمال من هذه الصورة (تأشيرات إقامة، هويات، كشوفات).
+التعليمات الصارمة جداً: 
+أرجع النتيجة **فقط** على شكل مصفوفة JSON (JSON Array) صالحة تماماً، بدون أي كلمة إضافية.
+يجب أن يحتوي كل كائن (Object) على المفاتيح التالية حصراً:
+- "workerName": استخرج الاسم باللغة العربية والاسم باللغة الإنجليزية معاً، وافصل بينهما برمز الخط العمودي (|) هكذا بالضبط: "الاسم بالعربي | English Name".
+- "nationality": الجنسية باللغة العربية (ابحث عن حقل الجنسية).
+- "profession": المهنة باللغة العربية (ابحث عن حقل المهنة).
+- "residencyEnd": تاريخ "انتهاء التصريح" أو "تاريخ الانتهاء" (احذر: تجاهل "تاريخ انتهاء جواز" أو "انتهاء الجواز" تماماً). حول التاريخ المستخرج إلى الصيغة القياسية "YYYY-MM-DD".
+استخرج جميع الأشخاص الموجودين في الصورة بدقة متناهية.`;
 
-أرجع النتيجة بصيغة JSON Array فقط، ولا تكتب أي حرف إضافي.`;
-
-                const payload = { 
-                    contents: [{ role: "user", parts: [{ text: aiPrompt }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], 
-                    generationConfig: { responseMimeType: "application/json" } 
-                };
+                const payload = { contents: [{ role: "user", parts: [{ text: aiPrompt }, { inlineData: { mimeType: blob.type || "image/png", data: base64Data } }] }], generationConfig: { responseMimeType: "application/json" } };
                 
                 const apiRes = await fetchFromGemini(apiKey, payload);
                 if (!apiRes.success) throw new Error(apiRes.error);
                 
                 let rawText = apiRes.result.candidates[0].content.parts[0].text;
                 
-                // معالج JSON المبسط والاحترافي (تم تنظيف وإزالة أكواد البحث المكررة لضمان سرعة البرق وتفادي الأعطال)
-                let dataArray = [];
-                try {
-                    let parsed = JSON.parse(rawText);
-                    // إذا كان الناتج مصفوفة نأخذه مباشرة، وإذا كان كائناً داخله مصفوفة نستخرجه بذكاء
-                    dataArray = Array.isArray(parsed) ? parsed : (Object.values(parsed).find(Array.isArray) || [parsed]);
-                } catch(e) {
-                    throw new Error("فشل في معالجة البيانات المستخرجة.");
+                let dataArray = null;
+                rawText = rawText.replace(/```json/gi, '').replace(/
+```/g, '').trim();
+                
+                const matchArray = rawText.match(/\[[\s\S]*\]/);
+                const matchObject = rawText.match(/\{[\s\S]*\}/);
+                
+                if (matchArray) {
+                    dataArray = JSON.parse(matchArray[0]);
+                } else if (matchObject) {
+                    dataArray = [JSON.parse(matchObject[0])];
+                } else {
+                    throw new Error("تعذر فهم رد الذكاء الاصطناعي");
                 }
-
-                if (!dataArray || dataArray.length === 0) throw new Error("لم يتم العثور على بيانات");
+                
+                if (!Array.isArray(dataArray)) dataArray = [dataArray];
+                if (dataArray.length === 0) throw new Error("لم يتم العثور على بيانات");
                 
                 if (dataArray.length === 1) {
                     const d = dataArray[0];
@@ -789,10 +794,8 @@
 
         window.handleSearch = (e) => { searchQuery = e.target.value.toLowerCase(); renderListsOnly(); };
         
-        // التحقق من الباسورد (بشكل مشفر لمنع كشفه بسهولة من الكود)
         window.login = () => { 
             const userPass = document.getElementById('pass').value;
-            // 'YTE5ODk=' هي تشفير كلمة 'a1989'
             if (btoa(userPass) === 'YTE5ODk=') { 
                 isAuth = true; render(); startDataListeners(); 
             } else { 
@@ -817,15 +820,14 @@
                         </div>
                     </div>`; 
                     
-                // حارس المراقبة الفولاذي (Anti-Inspect Observer) لمنع تحويل الـ Password إلى Text
                 setTimeout(() => {
                     const passInput = document.getElementById('pass');
                     if(passInput) {
                         const observer = new MutationObserver((mutations) => {
                             mutations.forEach((mutation) => {
                                 if (mutation.attributeName === 'type' && passInput.getAttribute('type') !== 'password') {
-                                    passInput.setAttribute('type', 'password'); // إرجاعها فوراً لنقاط
-                                    passInput.value = ''; // تفريغ الخانة كإجراء أمني
+                                    passInput.setAttribute('type', 'password');
+                                    passInput.value = ''; 
                                 }
                             });
                         });
