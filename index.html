@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مكتب مندوبك - برنامج المتابعة والتذكير الذكي</title>
     
-    <!-- المكتبات الخارجية -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -14,7 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     
-    <!-- التنسيقات (CSS) -->
     <style>
         body { 
             font-family: 'Cairo', sans-serif; 
@@ -40,8 +38,8 @@
         }
         .input-field:focus { 
             outline: none; 
-            border-color: #dc2626; 
-            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15); 
+            border-color: #8B0000; 
+            box-shadow: 0 0 0 4px rgba(139, 0, 0, 0.15); 
         }
         .input-field::placeholder { 
             color: #94a3b8; 
@@ -82,7 +80,7 @@
     <div id="login-screen" class="h-screen flex items-center justify-center px-4 transition-opacity duration-500">
         <div class="glass-card p-10 rounded-[3rem] w-full max-w-md text-center">
             <h2 class="text-4xl font-black text-white mb-2 shadow-sm">مكتب مندوبك</h2>
-            <p class="text-sm font-bold text-[#FFD700] mb-8 uppercase">برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
+            <p class="text-sm font-bold text-[#FFD700] mb-8 uppercase">برنامج المتابعة والتذكير الذكي</p>
             <form id="loginForm" autocomplete="off">
                 <input type="password" id="pass" placeholder="مفتاح المرور..." class="w-full p-4 input-field rounded-2xl text-center font-black text-lg mb-6" autocomplete="new-password">
                 <button type="submit" class="w-full py-4 bg-white text-[#8B0000] rounded-2xl font-black shadow-lg hover:scale-[1.02] transition">دخول للنظام</button>
@@ -97,20 +95,16 @@
             <div class="flex justify-between items-center mb-5 border-b pb-3">
                 <h3 class="text-xl font-black text-[#8B0000]">⚙️ إعدادات المحرك الذكي</h3>
                 <button onclick="window.closeSettings()" class="text-slate-400 hover:text-red-500 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">مفتاح API الخاص بك (Google AI Studio)</label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">مفتاح API الخاص بك</label>
                     <input type="password" id="setting-apiKey" class="w-full input-field rounded-xl text-sm font-mono tracking-wider" placeholder="AIzaSy..." dir="ltr" autocomplete="new-password">
                 </div>
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm">
-                    <button onclick="window.testApiConnection()" class="w-full py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-black hover:bg-blue-50 transition shadow-sm flex justify-center items-center gap-2">
-                        فحص الاتصال بالمحرك
-                    </button>
+                    <button onclick="window.testApiConnection()" class="w-full py-2.5 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-black hover:bg-blue-50 transition shadow-sm flex justify-center items-center gap-2">فحص الاتصال بالمحرك</button>
                     <p id="api-test-result" class="text-[11px] mt-3 font-bold text-center hidden transition-all"></p>
                 </div>
             </div>
@@ -137,23 +131,24 @@
             window.db = getFirestore(app); 
             
             // تصدير الدوال للاستخدام العام
-            window.collection = collection;
-            window.addDoc = addDoc;
-            window.deleteDoc = deleteDoc;
-            window.doc = doc;
-            window.onSnapshot = onSnapshot;
-            window.updateDoc = updateDoc;
-            window.setDoc = setDoc;
+            window.collection = collection; 
+            window.addDoc = addDoc; 
+            window.deleteDoc = deleteDoc; 
+            window.doc = doc; 
+            window.onSnapshot = onSnapshot; 
+            window.updateDoc = updateDoc; 
+            window.setDoc = setDoc; 
             window.writeBatch = writeBatch;
+            
             window.isDbReady = true; 
         } catch(e) { 
-            console.error("Firebase Error:", e); 
+            console.error(e);
             window.isDbReady = false; 
         }
     </script>
 
     <script>
-        // المتغيرات الأساسية
+        // المتغيرات العامة
         window.apiKey = localStorage.getItem('mandoub_api_key') || "";
         window.workers = []; 
         window.renewals = []; 
@@ -164,13 +159,12 @@
             manualEnd: "" 
         };
 
-        // المحرك الذكي الخاص بجوجل جيميناي
+        // المحرك الذكي للذكاء الاصطناعي
         const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
         
         window.fetchFromGemini = async function(key, payload) {
             let savedModel = localStorage.getItem('mandoub_working_model');
             let modelsToTry = savedModel ? [savedModel, ...GEMINI_MODELS.filter(m => m !== savedModel)] : GEMINI_MODELS;
-            let lastErrorMsg = "";
             
             for (const model of modelsToTry) {
                 try {
@@ -179,53 +173,45 @@
                         headers: { 'Content-Type': 'application/json' }, 
                         body: JSON.stringify(payload) 
                     });
-                    
                     const result = await response.json();
                     
                     if (response.ok) { 
                         localStorage.setItem('mandoub_working_model', model); 
                         return { success: true, result: result, model: model }; 
                     } else { 
-                        lastErrorMsg = result.error?.message || "Unknown API Error"; 
-                        if (response.status === 400 && lastErrorMsg.includes("API key")) {
-                            return { success: false, error: lastErrorMsg }; 
+                        if (response.status === 400 && (result.error?.message || "").includes("API key")) {
+                            return { success: false, error: result.error.message }; 
                         }
                     }
-                } catch (e) { 
-                    lastErrorMsg = e.message; 
+                } catch (e) {
+                    console.log("Model failed, trying next:", model);
                 }
             }
-            return { success: false, error: lastErrorMsg };
+            return { success: false, error: "فشل الاتصال بجميع الموديلات" };
         };
 
-        // دوال المساعدة لتهيئة التواريخ
+        // دوال معالجة التواريخ
         window.parseManualDate = (v) => { 
             if(!v) return ''; 
-            let p = v.trim().split(/[-/]/); 
+            let p = v.toString().trim().split(/[-/]/); 
             if(p.length === 3) { 
-                if(p[0].length <= 2) {
-                    return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; 
-                }
-                if(p[0].length === 4) {
-                    return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
-                }
+                if(p[0].length <= 2) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; 
+                if(p[0].length === 4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`; 
             } 
             return v; 
         };
 
         window.displayDate = (d) => { 
             if(!d) return ''; 
-            let p = d.split('-'); 
-            if(p.length === 3 && p[0].length === 4) {
-                return `${p[2]}-${p[1]}-${p[0]}`; 
-            }
+            let p = d.toString().split('-'); 
+            if(p.length === 3 && p[0].length === 4) return `${p[2]}-${p[1]}-${p[0]}`; 
             return d; 
         };
 
         window.formatDateDDMMYYYY = (dStr) => { 
             if(!dStr || dStr === 'غير محدد') return '---'; 
             const d = new Date(dStr); 
-            if(isNaN(d.getTime())) return dStr; 
+            if(isNaN(d.getTime())) return dStr.toString(); 
             return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`; 
         };
 
@@ -233,9 +219,9 @@
             if(!dStr || dStr === 'غير محدد' || dStr === '---') return Infinity; 
             const d = new Date(dStr); 
             if(isNaN(d.getTime())) return Infinity; 
-            return Math.ceil((d.setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / (1000*60*60*24)); 
+            return Math.ceil((d.setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24)); 
         };
-
+        
         window.getStatus = (d) => { 
             const days = window.getDaysDiff(d); 
             if(days === Infinity) return { label:'غير محدد', bg:'bg-slate-100', text:'text-slate-500', daysText:'', isExpired:false, isWarning:false }; 
@@ -248,9 +234,8 @@
         window.updateSyncUI = (status) => { 
             const el = document.getElementById('sync-status-badge'); 
             if(!el) return; 
-            
             if(status === 'connected') {
-                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> 🟢 متصل'; 
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> 🟢 متصل ومحدث'; 
             } else if(status === 'error') {
                 el.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span> 🔴 خطأ بالاتصال'; 
             } else if(status === 'loading') {
@@ -258,9 +243,10 @@
             }
         };
 
+        // التزامن مع قاعدة البيانات
         window.startDataListeners = function() {
             if (!window.isDbReady) { 
-                Swal.fire('خطأ', 'تعذر الوصول لقاعدة البيانات. تأكد من الإنترنت.', 'error'); 
+                setTimeout(window.startDataListeners, 500); 
                 return; 
             }
             
@@ -273,8 +259,8 @@
                     createdAt: d.data().createdAt || new Date().toISOString() 
                 })); 
                 window.renderListsOnly(); 
-                window.updateSyncUI('connected'); 
-            }, () => { 
+            }, (err) => { 
+                console.error(err); 
                 window.updateSyncUI('error'); 
             });
             
@@ -285,71 +271,67 @@
             
             window.onSnapshot(window.doc(window.db, 'config', 'dashboard'), (docSnap) => { 
                 if (docSnap.exists()) { 
-                    window.dashConfig = docSnap.data(); 
+                    window.dashConfig = docSnap.data() || window.dashConfig; 
                     window.renderListsOnly(); 
                 } 
             });
         };
 
+        // إعدادات واجهة المستخدم والمفاتيح
         window.openSettings = () => { 
             document.getElementById('setting-apiKey').value = window.apiKey; 
             document.getElementById('settingsModal').classList.remove('hidden'); 
         };
-
+        
         window.closeSettings = () => { 
             document.getElementById('settingsModal').classList.add('hidden'); 
         };
-
+        
         window.saveSettings = () => { 
             const k = document.getElementById('setting-apiKey').value.trim(); 
-            if(!k) {
-                return Swal.fire('خطأ','المفتاح مطلوب','error'); 
-            }
+            if(!k) return Swal.fire('خطأ','المفتاح مطلوب','error'); 
             localStorage.setItem('mandoub_api_key', k); 
             window.apiKey = k; 
             window.closeSettings(); 
             Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم الحفظ', showConfirmButton:false, timer:2000}); 
         };
-
+        
         window.testApiConnection = async () => { 
-            const key = document.getElementById('setting-apiKey').value.trim(); 
-            const resEl = document.getElementById('api-test-result'); 
+            const k = document.getElementById('setting-apiKey').value.trim(); 
+            const r = document.getElementById('api-test-result'); 
+            if(!k) return; 
             
-            if(!key) return; 
+            r.innerHTML = '<span class="text-blue-600 animate-pulse">جاري الفحص...</span>'; 
+            r.classList.remove('hidden'); 
             
-            resEl.innerHTML = '<span class="text-blue-600 animate-pulse">جاري الفحص الذكي...</span>'; 
-            resEl.classList.remove('hidden'); 
-            
-            const apiRes = await window.fetchFromGemini(key, { contents: [{ parts: [{ text: "Hi" }] }] }); 
-            
-            if (apiRes.success) { 
-                resEl.innerHTML = `<span class="text-green-600 font-bold block bg-green-50 rounded p-1">✅ يعمل بكفاءة!<br>${apiRes.model}</span>`; 
-            } else { 
-                resEl.innerHTML = `<span class="text-red-600 font-bold block bg-red-50 rounded p-1">❌ مرفوض:<br>${apiRes.error}</span>`; 
-            } 
+            const res = await window.fetchFromGemini(k, { contents: [{ parts: [{ text: "Hi" }] }] }); 
+            if(res.success) {
+                r.innerHTML = `<span class="text-green-600 font-bold block bg-green-50 rounded p-1">✅ يعمل بكفاءة!<br>${res.model}</span>`; 
+            } else {
+                r.innerHTML = `<span class="text-red-600 font-bold block bg-red-50 rounded p-1">❌ مرفوض:<br>${res.error}</span>`; 
+            }
         };
 
+        // وظائف التصدير والاستيراد للإكسيل
         window.exportToExcel = () => {
-            if(window.workers.length === 0) {
-                return Swal.fire("تنبيه","السجلات فارغة","info");
-            }
+            if(window.workers.length === 0) return Swal.fire("تنبيه","السجلات فارغة","info");
             
-            const dataToExport = [...window.workers].sort((a,b)=>(a.sponsorName||'').localeCompare(b.sponsorName||'','ar')).map((w,i)=>({ 
-                "م": i+1, 
+            const dataToExport = [...window.workers].sort((a,b) => ((a.sponsorName||'').toString()).localeCompare((b.sponsorName||'').toString(),'ar')).map((w,i) => ({ 
+                "م": i + 1, 
                 "اسم الكفيل": w.sponsorName || 'بدون كفيل', 
                 "رقم هاتف الكفيل": w.sponsorPhone || '---', 
-                "اسم العامل": w.workerName ? w.workerName.replace('|',' - ') : '---', 
+                "اسم العامل": w.workerName ? w.workerName.toString().replace('|',' - ') : '---', 
                 "الجنسية": w.nationality || '---', 
                 "المهنة": w.profession || '---', 
                 "تاريخ إنتهاء الإقامة": window.formatDateDDMMYYYY(w.residencyEnd), 
                 "تاريخ إنتهاء التأمين": window.formatDateDDMMYYYY(w.insuranceEnd), 
-                "تاريخ الإضافة بالنظام": w.createdAt ? window.formatDateDDMMYYYY(w.createdAt.split('T')[0]) : '---' 
+                "تاريخ الإضافة بالنظام": w.createdAt ? window.formatDateDDMMYYYY(w.createdAt.toString().split('T')[0]) : '---' 
             }));
             
             const ws = XLSX.utils.json_to_sheet(dataToExport); 
             if(!ws['!views']) ws['!views'] = []; 
             ws['!views'].push({rightToLeft:true}); 
-            ws['!cols'] = [{wch:5}, {wch:25}, {wch:15}, {wch:30}, {wch:15}, {wch:20}, {wch:18}, {wch:18}, {wch:18}]; 
+            ws['!cols'] = [{wch:5},{wch:25},{wch:15},{wch:30},{wch:15},{wch:20},{wch:18},{wch:18},{wch:18}]; 
             
             const wb = XLSX.utils.book_new(); 
             XLSX.utils.book_append_sheet(wb, ws, "السجل الرئيسي"); 
@@ -368,9 +350,7 @@
                     const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'}); 
                     const jsonData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                     
-                    if(jsonData.length === 0) {
-                        return Swal.fire('خطأ','الملف فارغ','error');
-                    }
+                    if(jsonData.length === 0) return Swal.fire('خطأ','الملف فارغ','error');
                     
                     const batch = window.writeBatch(window.db); 
                     let count = 0;
@@ -381,16 +361,16 @@
                         
                         const pDate = (dStr) => { 
                             if(!dStr || dStr === '---') return ''; 
-                            const p = dStr.split('/'); 
+                            const p = dStr.toString().split('/'); 
                             return p.length === 3 ? `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}` : ''; 
                         };
                         
                         batch.set(window.doc(window.collection(window.db, 'workers')), { 
-                            sponsorName: r["اسم الكفيل"] !== '---' ? r["اسم الكفيل"] : 'بدون كفيل', 
-                            sponsorPhone: r["رقم هاتف الكفيل"] !== '---' ? r["رقم هاتف الكفيل"].toString() : '', 
-                            workerName: name, 
-                            nationality: r["الجنسية"] !== '---' ? r["الجنسية"] : '', 
-                            profession: r["المهنة"] !== '---' ? r["المهنة"] : '', 
+                            sponsorName: (r["اسم الكفيل"] !== '---' ? r["اسم الكفيل"] : 'بدون كفيل').toString(), 
+                            sponsorPhone: (r["رقم هاتف الكفيل"] !== '---' ? r["رقم هاتف الكفيل"] : '').toString(), 
+                            workerName: name.toString(), 
+                            nationality: (r["الجنسية"] !== '---' ? r["الجنسية"] : '').toString(), 
+                            profession: (r["المهنة"] !== '---' ? r["المهنة"] : '').toString(), 
                             residencyEnd: pDate(r["تاريخ إنتهاء الإقامة"]), 
                             insuranceEnd: pDate(r["تاريخ إنتهاء التأمين"]), 
                             createdAt: new Date().toISOString(), 
@@ -398,18 +378,17 @@
                         }); 
                         count++;
                     }
-                    
                     await batch.commit(); 
                     Swal.fire('تم بنجاح!',`تم رفع ${count} سجل.`,'success');
                 } catch(err) { 
-                    Swal.fire('خطأ','تعذر الاستيراد.','error'); 
+                    Swal.fire('خطأ','تعذر الاستيراد. تأكد من صيغة الملف.','error'); 
                 } 
-                
                 event.target.value = '';
             }; 
             reader.readAsArrayBuffer(file);
         };
 
+        // عمليات التعديل والحفظ على السجلات
         window.saveWorker = async () => {
             const data = { 
                 sponsorName: document.getElementById('sName').value.trim() || 'بدون كفيل', 
@@ -423,21 +402,17 @@
                 contacted: false 
             };
             
-            if(!data.workerName) {
-                return Swal.fire('تنبيه','يجب إدخال اسم العامل','warning');
-            }
+            if(!data.workerName) return Swal.fire('تنبيه','يجب إدخال اسم العامل','warning');
             
-            const isDup = window.workers.some(w => w.workerName && w.workerName.trim().toLowerCase() === data.workerName.toLowerCase() && w.sponsorName.trim() === data.sponsorName);
-            if(isDup) {
-                return Swal.fire('تنبيه','هذا العامل مسجل مسبقاً تحت نفس الكفيل!','warning');
-            }
+            const isDup = window.workers.some(w => (w.workerName||'').toString().trim().toLowerCase() === data.workerName.toLowerCase() && (w.sponsorName||'').toString().trim() === data.sponsorName);
+            if(isDup) return Swal.fire('تنبيه','هذا العامل مسجل مسبقاً!','warning');
             
             Swal.fire({title:'جاري الحفظ...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+            
             try { 
                 await window.addDoc(window.collection(window.db, 'workers'), data); 
-                Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تقييد السجل', showConfirmButton:false, timer:2000}); 
+                Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم الحفظ', showConfirmButton:false, timer:2000}); 
                 
-                // مسح الحقول بعد الحفظ
                 ['wName','wNationality','wProfession','rEnd','iEnd'].forEach(id => document.getElementById(id).value = ''); 
                 document.getElementById('wName').focus(); 
             } catch(e) { 
@@ -446,46 +421,26 @@
         };
 
         window.deleteWorker = (id) => { 
-            Swal.fire({
-                title: 'تأكيد الحذف', 
-                text: "سيتم حذفه نهائياً.", 
-                icon: 'warning', 
-                showCancelButton: true, 
-                confirmButtonColor: '#d33', 
-                confirmButtonText: 'نعم، احذف', 
-                cancelButtonText: 'إلغاء'
-            }).then(async(res) => { 
+            Swal.fire({title:'تأكيد الحذف', icon:'warning', showCancelButton:true, confirmButtonColor:'#d33', confirmButtonText:'نعم، احذف', cancelButtonText:'إلغاء'})
+            .then(async(res) => { 
                 if(res.isConfirmed) { 
-                    try { 
-                        await window.deleteDoc(window.doc(window.db, 'workers', id)); 
-                    } catch(e) { console.error(e); } 
+                    try { await window.deleteDoc(window.doc(window.db, 'workers', id)); } catch(e) {} 
                 } 
             }); 
         };
-
+        
         window.deleteSponsor = (e, sName) => { 
             e.stopPropagation(); 
-            Swal.fire({
-                title: 'حذف الكفيل نهائياً', 
-                html: `سيتم حذف الكفيل <b class="text-red-600">${sName}</b> وجميع العمال التابعين له نهائياً!`, 
-                icon: 'warning', 
-                showCancelButton: true, 
-                confirmButtonColor: '#d33', 
-                confirmButtonText: 'نعم، إبادة الكل 🗑️', 
-                cancelButtonText: 'إلغاء'
-            }).then(async(res) => { 
+            Swal.fire({title:'حذف الكفيل نهائياً', html:`سيتم حذف الكفيل وجميع عماله!`, icon:'warning', showCancelButton:true, confirmButtonColor:'#d33', confirmButtonText:'نعم، إبادة الكل 🗑️', cancelButtonText:'إلغاء'})
+            .then(async(res) => { 
                 if(res.isConfirmed) { 
                     try { 
-                        Swal.fire({title:'جاري الحذف الشامل...', didOpen:()=>Swal.showLoading()}); 
+                        Swal.fire({title:'جاري الحذف...', didOpen:()=>Swal.showLoading()}); 
                         const batch = window.writeBatch(window.db); 
-                        
-                        window.workers.filter(w => w.sponsorName === sName).forEach(w => 
-                            batch.delete(window.doc(window.db, 'workers', w.id))
-                        ); 
-                        
+                        window.workers.filter(w => (w.sponsorName||'').toString() === sName).forEach(w => batch.delete(window.doc(window.db, 'workers', w.id))); 
                         await batch.commit(); 
                         Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم الإبادة', showConfirmButton:false, timer:2000}); 
-                    } catch(e) { console.error(e); } 
+                    } catch(e) {} 
                 } 
             }); 
         };
@@ -494,54 +449,50 @@
             const w = window.workers.find(x => x.id === id); 
             if(!w) return;
             
-            const {value: vals} = await Swal.fire({ 
-                title: 'تعديل السجل', 
-                html: `
+            const {value:vals} = await Swal.fire({ 
+                title:'تعديل السجل', 
+                html:`
                     <div class="text-right space-y-3 p-2">
-                        <input id="e-sName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="اسم الكفيل" value="${w.sponsorName||''}">
-                        <input id="e-sPhone" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="رقم الكفيل" value="${w.sponsorPhone||''}" dir="ltr">
-                        <input id="e-wName" class="w-full border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 mt-2 outline-none" placeholder="الاسم" value="${w.workerName||''}">
+                        <input id="e-sName" class="w-full border-2 p-2.5 rounded-xl outline-none" placeholder="اسم الكفيل" value="${w.sponsorName||''}">
+                        <input id="e-sPhone" class="w-full border-2 p-2.5 rounded-xl outline-none" placeholder="رقم الكفيل" value="${w.sponsorPhone||''}" dir="ltr">
+                        <input id="e-wName" class="w-full border-2 p-2.5 rounded-xl outline-none mt-2" placeholder="الاسم" value="${w.workerName||''}">
                         <div class="flex gap-2">
-                            <input id="e-wNat" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="الجنسية" value="${w.nationality||''}">
-                            <input id="e-wProf" class="w-1/2 border-2 border-slate-300 p-2.5 rounded-xl bg-slate-50 outline-none" placeholder="المهنة" value="${w.profession||''}">
+                            <input id="e-wNat" class="w-1/2 border-2 p-2.5 rounded-xl outline-none" placeholder="الجنسية" value="${w.nationality||''}">
+                            <input id="e-wProf" class="w-1/2 border-2 p-2.5 rounded-xl outline-none" placeholder="المهنة" value="${w.profession||''}">
                         </div>
                         <div class="flex gap-2 mt-3">
                             <div class="w-1/2">
                                 <label class="text-xs font-bold mb-1 block">تاريخ الإقامة</label>
-                                <input id="e-rEnd" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg text-center font-bold" value="${window.displayDate(w.residencyEnd)}">
+                                <input id="e-rEnd" dir="ltr" class="w-full border-2 p-2 rounded-lg text-center" value="${window.displayDate(w.residencyEnd)}">
                             </div>
                             <div class="w-1/2">
                                 <label class="text-xs font-bold mb-1 block">تاريخ التأمين</label>
-                                <input id="e-iEnd" dir="ltr" class="w-full border-2 border-slate-300 p-2 rounded-lg text-center font-bold" value="${window.displayDate(w.insuranceEnd)}">
+                                <input id="e-iEnd" dir="ltr" class="w-full border-2 p-2 rounded-lg text-center" value="${window.displayDate(w.insuranceEnd)}">
                             </div>
                         </div>
                     </div>
                 `, 
-                showCancelButton: true, 
-                confirmButtonText: 'حفظ التحديث', 
-                cancelButtonText: 'إلغاء', 
-                confirmButtonColor: '#8B0000', 
-                preConfirm: () => { 
-                    return { 
-                        sponsorName: document.getElementById('e-sName').value.trim(), 
-                        sponsorPhone: document.getElementById('e-sPhone').value.trim(), 
-                        workerName: document.getElementById('e-wName').value.trim(), 
-                        nationality: document.getElementById('e-wNat').value.trim(), 
-                        profession: document.getElementById('e-wProf').value.trim(), 
-                        residencyEnd: window.parseManualDate(document.getElementById('e-rEnd').value), 
-                        insuranceEnd: window.parseManualDate(document.getElementById('e-iEnd').value) 
-                    }; 
-                } 
+                showCancelButton:true, 
+                confirmButtonText:'حفظ التحديث', 
+                cancelButtonText:'إلغاء', 
+                confirmButtonColor:'#8B0000', 
+                preConfirm:() => ({ 
+                    sponsorName: document.getElementById('e-sName').value.trim(), 
+                    sponsorPhone: document.getElementById('e-sPhone').value.trim(), 
+                    workerName: document.getElementById('e-wName').value.trim(), 
+                    nationality: document.getElementById('e-wNat').value.trim(), 
+                    profession: document.getElementById('e-wProf').value.trim(), 
+                    residencyEnd: window.parseManualDate(document.getElementById('e-rEnd').value), 
+                    insuranceEnd: window.parseManualDate(document.getElementById('e-iEnd').value) 
+                }) 
             });
             
             if(vals) { 
-                if(!vals.workerName) {
-                    return Swal.fire('خطأ','الاسم إلزامي','error'); 
-                }
+                if(!vals.workerName) return Swal.fire('خطأ','الاسم إلزامي','error'); 
                 try { 
                     await window.updateDoc(window.doc(window.db, 'workers', id), vals); 
                     Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التحديث', showConfirmButton:false, timer:1500}); 
-                } catch(e) { console.error(e); } 
+                } catch(e) {} 
             }
         };
 
@@ -549,17 +500,13 @@
             const w = window.workers.find(x => x.id === id); 
             const tL = type === 'residency' ? 'الإقامة' : 'التأمين';
             
-            const {value: nD} = await Swal.fire({ 
-                title: `تجديد (${tL})`, 
-                html: `
-                    <p class="mb-4 text-sm font-bold">العامل: <span class="text-[#8B0000]">${w.workerName}</span></p>
-                    <input id="rn-date" dir="ltr" class="swal2-input text-center" placeholder="يوم-شهر-سنة">
-                `, 
-                showCancelButton: true, 
-                confirmButtonText: 'اعتماد', 
-                cancelButtonText: 'إلغاء', 
-                confirmButtonColor: '#25D366', 
-                preConfirm: () => { 
+            const {value:nD} = await Swal.fire({ 
+                title:`تجديد (${tL})`, 
+                html:`<p class="mb-4 text-sm font-bold">العامل: <span class="text-[#8B0000]">${w.workerName}</span></p><input id="rn-date" dir="ltr" class="swal2-input text-center" placeholder="يوم-شهر-سنة">`, 
+                showCancelButton:true, 
+                confirmButtonText:'اعتماد', 
+                cancelButtonText:'إلغاء', 
+                preConfirm:() => { 
                     const v = document.getElementById('rn-date').value.trim(); 
                     if(!v) return Swal.showValidationMessage('مطلوب التاريخ'); 
                     const fd = window.parseManualDate(v); 
@@ -570,112 +517,98 @@
             
             if(nD) { 
                 try { 
-                    const upD = type === 'residency' ? {residencyEnd: nD, contacted: false} : {insuranceEnd: nD, contacted: false}; 
+                    const upD = type === 'residency' ? {residencyEnd:nD, contacted:false} : {insuranceEnd:nD, contacted:false}; 
                     await window.updateDoc(window.doc(window.db, 'workers', id), upD); 
-                    await window.addDoc(window.collection(window.db, 'renewals'), { 
-                        workerId: id, 
-                        workerName: w.workerName, 
-                        sponsorName: w.sponsorName, 
-                        type: tL, 
-                        renewDate: new Date().toISOString() 
-                    }); 
-                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التجديد بنجاح', showConfirmButton:false, timer:3000}); 
-                } catch(e) { console.error(e); } 
+                    await window.addDoc(window.collection(window.db, 'renewals'), { workerId:id, workerName:w.workerName, sponsorName:w.sponsorName, type:tL, renewDate:new Date().toISOString() }); 
+                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التجديد', showConfirmButton:false, timer:3000}); 
+                } catch(e) {} 
             }
         };
 
         window.aiDraftMessage = (id) => { 
             const w = window.workers.find(x => x.id === id); 
-            let p = (w.sponsorPhone || "").replace(/\D/g,''); 
+            let p = (w.sponsorPhone || "").toString().replace(/\D/g,''); 
             
             if(p.startsWith('0')) p = p.substring(1); 
             if(p && !p.startsWith('971')) p = '971' + p; 
+            if(!p) return Swal.fire('تنبيه','لا يوجد رقم للتواصل','warning'); 
             
-            if(!p) {
-                return Swal.fire('تنبيه','لا يوجد رقم للتواصل مع الكفيل','warning'); 
-            }
-            
-            window.updateDoc(window.doc(window.db, 'workers', id), {contacted: true}).catch(e => {}); 
+            window.updateDoc(window.doc(window.db, 'workers', id), {contacted:true}).catch(e => {}); 
             
             const rDays = window.getDaysDiff(w.residencyEnd); 
             const iDays = window.getDaysDiff(w.insuranceEnd); 
             let eT = "", eD = ""; 
             
-            if(rDays <= 7 && iDays <= 7) { 
-                eT = "الإقامة والتأمين"; 
-                eD = `${window.formatDateDDMMYYYY(w.residencyEnd)} و ${window.formatDateDDMMYYYY(w.insuranceEnd)}`; 
-            } else if(rDays <= 7) { 
-                eT = "الإقامة"; 
-                eD = window.formatDateDDMMYYYY(w.residencyEnd); 
-            } else { 
-                eT = "التأمين"; 
-                eD = window.formatDateDDMMYYYY(w.insuranceEnd); 
+            if(rDays <= 7 && iDays <= 7) {
+                eT = "الإقامة والتأمين";
+                eD = `${window.formatDateDDMMYYYY(w.residencyEnd)} و ${window.formatDateDDMMYYYY(w.insuranceEnd)}`;
+            } else if(rDays <= 7) {
+                eT = "الإقامة";
+                eD = window.formatDateDDMMYYYY(w.residencyEnd);
+            } else {
+                eT = "التأمين";
+                eD = window.formatDateDDMMYYYY(w.insuranceEnd);
             } 
             
-            const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${w.workerName.split('|')[0]} – المهنة ${w.profession||'-'}  – الجنسية ${w.nationality||'-'} ، تنتهي بتاريخ ${eD} (${eT}).\nنرجو التواصل لاتخاذ إجراءات التجديد.\nمركز مندوبك | لتخليص المعاملات`; 
+            const nm = (w.workerName || '').toString().split('|')[0]; 
+            const msg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ ${w.sponsorName} نود إفادتكم بأن وثائق العامل لديكم ../${nm} – المهنة ${w.profession||'-'}  – الجنسية ${w.nationality||'-'} ، تنتهي بتاريخ ${eD} (${eT}).\nنرجو التواصل لاتخاذ إجراءات التجديد.\nمركز مندوبك`; 
             
             window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`, '_blank'); 
         };
 
+        // دوال الإحصائيات (Dashboard)
         window.updateDashText = async (type, val) => { 
             if(type === 'start') window.dashConfig.manualStart = val.trim(); 
             if(type === 'end') window.dashConfig.manualEnd = val.trim(); 
-            try { 
-                await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); 
-            } catch(e) { console.error(e); } 
+            try { await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); } catch(e) {} 
         };
 
         window.resetDashboard = async () => { 
             Swal.fire({ 
-                title: 'تصفير الدورة؟', 
-                icon: 'warning', 
-                showCancelButton: true, 
-                confirmButtonColor: '#8B0000', 
-                confirmButtonText: 'نعم', 
-                cancelButtonText: 'إلغاء' 
+                title:'تصفير الدورة؟', 
+                icon:'warning', 
+                showCancelButton:true, 
+                confirmButtonColor:'#8B0000', 
+                confirmButtonText:'نعم', 
+                cancelButtonText:'إلغاء' 
             }).then(async(res) => { 
                 if(res.isConfirmed) { 
                     window.dashConfig.resetTimestamp = new Date().toISOString(); 
                     window.dashConfig.manualStart = ""; 
                     window.dashConfig.manualEnd = ""; 
-                    try { 
-                        await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); 
-                    } catch(e) { console.error(e); } 
+                    try { await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); } catch(e) {} 
                 } 
             }); 
         };
 
-        window.printDashboard = () => {
-            const rTime = window.dashConfig.resetTimestamp; 
-            const aP = window.workers.filter(w => w.createdAt && w.createdAt >= rTime).length; 
-            const rL = window.renewals.filter(r => r.renewDate && r.renewDate >= rTime); 
+        window.printDashboard = () => { 
+            const rT = (window.dashConfig && window.dashConfig.resetTimestamp) ? window.dashConfig.resetTimestamp : new Date(0).toISOString(); 
+            const aP = window.workers.filter(w => w.createdAt && w.createdAt >= rT).length; 
+            const rL = window.renewals.filter(r => r.renewDate && r.renewDate >= rT); 
             const tR = rL.length; 
-            const pct = aP > 0 ? Math.min(100, Math.round((tR / aP) * 100)) : 0;
+            const pct = aP > 0 ? Math.min(100, Math.round((tR/aP)*100)) : 0; 
             
-            let tRows = rL.length > 0 ? [...rL].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map((r,i) => `
+            let tRows = rL.length > 0 ? [...rL].sort((a,b) => new Date(b.renewDate||0) - new Date(a.renewDate||0)).map((r,i) => `
                 <tr>
                     <td>${i+1}</td>
-                    <td>${r.workerName ? r.workerName.replace('|','-') : '---'}</td>
-                    <td>${r.sponsorName || '---'}</td>
-                    <td>${r.type || '---'}</td>
+                    <td>${(r.workerName||'').toString().replace('|','-')}</td>
+                    <td>${r.sponsorName||'-'}</td>
+                    <td>${r.type||'-'}</td>
                     <td dir="ltr">${window.formatDateDDMMYYYY(r.renewDate)}</td>
                 </tr>
-            `).join('') : `<tr><td colspan="5" style="text-align:center;">لا يوجد إنجازات في هذه الفترة</td></tr>`;
+            `).join('') : `<tr><td colspan="5" style="text-align:center;">لا يوجد إنجازات</td></tr>`; 
             
             const html = `
                 <html dir="rtl" lang="ar">
                 <head>
-                    <title>تقرير الإنجازات - مكتب مندوبك</title>
+                    <title>تقرير الإنجازات</title>
                     <style>
                         body { font-family: Tahoma, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
                         .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #8B0000; padding-bottom: 20px; }
-                        .header h1 { color: #8B0000; margin: 0 0 10px 0; font-size: 28px; }
+                        .header h1 { color: #8B0000; margin: 0 0 10px 0; }
                         .stats-grid { display: flex; justify-content: space-between; margin-bottom: 40px; gap: 20px; }
                         .stat-box { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; }
-                        .stat-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #64748b; }
-                        .stat-box .val { font-size: 28px; font-weight: bold; color: #0f172a; margin: 0; }
-                        .stat-box .val.green { color: #16a34a; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                         th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
                         th { background-color: #f1f5f9; }
                     </style>
@@ -683,58 +616,52 @@
                 <body>
                     <div class="header">
                         <h1>📊 تقرير لوحة الإنجازات</h1>
-                        <p>تاريخ استخراج التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
+                        <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
                     </div>
                     <div class="stats-grid">
-                        <div class="stat-box"><h3>مسجل حديثاً</h3><p class="val">${aP}</p></div>
-                        <div class="stat-box"><h3>تم تجديده</h3><p class="val green">${tR}</p></div>
-                        <div class="stat-box"><h3>نسبة الإنجاز</h3><p class="val">${pct}%</p></div>
+                        <div class="stat-box"><h3>مسجل حديثاً</h3><h2>${aP}</h2></div>
+                        <div class="stat-box"><h3>تم تجديده</h3><h2 style="color:#16a34a">${tR}</h2></div>
+                        <div class="stat-box"><h3>نسبة الإنجاز</h3><h2>${pct}%</h2></div>
                     </div>
-                    <h3 style="margin-bottom:15px;">السجل:</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th width="5%">م</th>
-                                <th width="30%">اسم العامل</th>
-                                <th width="30%">الكفيل</th>
-                                <th width="15%">الوثيقة</th>
-                                <th width="20%">التاريخ</th>
+                                <th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">الوثيقة</th><th width="20%">التاريخ</th>
                             </tr>
                         </thead>
                         <tbody>${tRows}</tbody>
                     </table>
                 </body>
                 </html>
-            `;
+            `; 
+            
             const pw = window.open('','','width=900,height=700'); 
             pw.document.write(html); 
             pw.document.close(); 
             pw.focus(); 
-            setTimeout(() => { pw.print(); pw.close(); }, 500);
+            setTimeout(() => { pw.print(); pw.close(); }, 500); 
         };
-
-        function getDashboardHtml() {
-            const rTime = window.dashConfig.resetTimestamp; 
-            const aP = window.workers.filter(w => w.createdAt && w.createdAt >= rTime).length; 
-            const rL = window.renewals.filter(r => r.renewDate && r.renewDate >= rTime); 
+        
+        function getDashboardHtml() { 
+            const rT = (window.dashConfig && window.dashConfig.resetTimestamp) ? window.dashConfig.resetTimestamp : new Date(0).toISOString(); 
+            const aP = window.workers.filter(w => w.createdAt && w.createdAt >= rT).length; 
+            const rL = window.renewals.filter(r => r.renewDate && r.renewDate >= rT); 
             const tR = rL.length; 
-            const pct = aP > 0 ? Math.min(100, Math.round((tR / aP) * 100)) : 0;
+            const pct = aP > 0 ? Math.min(100, Math.round((tR/aP)*100)) : 0; 
             
-            let lg = rL.length > 0 ? [...rL].sort((a,b) => new Date(b.renewDate) - new Date(a.renewDate)).map(r => `
+            let lg = rL.length > 0 ? [...rL].sort((a,b) => new Date(b.renewDate||0) - new Date(a.renewDate||0)).map(r => `
                 <div class="text-[10px] text-white/90 bg-white/5 px-2 py-1.5 rounded-lg flex justify-between items-center border border-white/5 mb-1">
-                    <span class="font-bold text-[#25D366]">${r.workerName ? r.workerName.split('|')[0] : '-'}</span>
-                    <span class="text-[9px] opacity-80 bg-black/20 px-2 rounded-full">ك: ${r.sponsorName || '-'}</span>
+                    <span class="font-bold text-[#25D366]">${(r.workerName||'').toString().split('|')[0]}</span>
+                    <span class="text-[9px] opacity-80 bg-black/20 px-2 rounded-full">ك: ${r.sponsorName||'-'}</span>
                 </div>
-            `).join('') : `<div class="text-[10px] text-white/40 text-center py-4">لا يوجد عمليات مسجلة</div>`;
+            `).join('') : `<div class="text-[10px] text-white/40 text-center py-4">لا توجد إنجازات مسجلة مؤخراً</div>`; 
             
             return `
                 <details class="glass-card rounded-3xl mb-8 shadow-lg border-t-4 border-t-[#8B0000] overflow-hidden group">
                     <summary class="p-5 cursor-pointer flex flex-col gap-4 outline-none">
                         <div class="flex justify-between items-center w-full mb-2">
                             <h3 class="text-base font-black text-white flex items-center gap-2">📊 لوحة قياس الإنجازات</h3>
-                            <svg class="w-5 h-5 transition-transform group-open:rotate-180 opacity-60 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
+                            <svg class="w-5 h-5 transition-transform group-open:rotate-180 opacity-60 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
                         <div class="grid grid-cols-3 gap-3 w-full">
                             <div class="bg-black/20 p-3 rounded-2xl text-center">
@@ -747,39 +674,37 @@
                             </div>
                             <div class="bg-black/20 p-3 rounded-2xl text-center">
                                 <p class="text-[10px] text-white/60 mb-1">نسبة الإنجاز</p>
-                                <p class="text-2xl font-black ${pct >= 50 ? 'text-[#25D366]' : 'text-amber-400'}">${pct}%</p>
+                                <p class="text-2xl font-black ${pct>=50?'text-[#25D366]':'text-amber-400'}">${pct}%</p>
                             </div>
                         </div>
                     </summary>
                     <div class="p-5 border-t border-white/10 bg-black/10 flex flex-col gap-4">
                         <div class="flex flex-wrap gap-2 justify-between items-center">
                             <div class="flex gap-2">
-                                <input type="text" value="${window.dashConfig.manualStart || ''}" onchange="window.updateDashText('start', this.value)" placeholder="من..." class="w-20 text-[10px] p-1.5 rounded text-black text-center">
-                                <input type="text" value="${window.dashConfig.manualEnd || ''}" onchange="window.updateDashText('end', this.value)" placeholder="إلى..." class="w-20 text-[10px] p-1.5 rounded text-black text-center">
+                                <input type="text" value="${window.dashConfig.manualStart||''}" onchange="window.updateDashText('start',this.value)" placeholder="من..." class="w-20 text-[10px] p-1.5 rounded text-black text-center">
+                                <input type="text" value="${window.dashConfig.manualEnd||''}" onchange="window.updateDashText('end',this.value)" placeholder="إلى..." class="w-20 text-[10px] p-1.5 rounded text-black text-center">
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="window.printDashboard()" class="bg-slate-600/20 text-slate-200 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-[11px] font-black border border-slate-500/30">طباعة 🖨️</button>
-                                <button onclick="window.resetDashboard()" class="bg-red-600/20 text-red-200 hover:bg-red-600 px-3 py-1.5 rounded-xl text-[11px] font-black border border-red-500/30">تصفير</button>
+                                <button onclick="window.printDashboard()" class="bg-slate-600/20 text-slate-200 hover:bg-slate-600 px-3 py-1.5 rounded-xl text-[11px] font-black border border-slate-500/30">طباعة التقرير 🖨️</button>
+                                <button onclick="window.resetDashboard()" class="bg-red-600/20 text-red-200 hover:bg-red-600 px-3 py-1.5 rounded-xl text-[11px] font-black border border-red-500/30">تصفير العداد</button>
                             </div>
                         </div>
                         <div class="bg-black/30 rounded-xl p-3 mt-2 max-h-40 overflow-y-auto custom-scrollbar">${lg}</div>
                     </div>
                 </details>
-            `;
+            `; 
         }
 
+        // تفريغ الصور الذكي (OCR)
         window.handleImageFile = async (e) => { 
             const f = e.target.files[0]; 
-            if(f) { 
-                window.processImageForAI(f); 
-                e.target.value = ''; 
-            } 
+            if(f) { window.processImageForAI(f); e.target.value=''; } 
         };
-
+        
         window.handlePaste = async (e) => { 
             const items = (e.clipboardData || e.originalEvent.clipboardData).items; 
-            for(let i of items) { 
-                if(i.type.indexOf("image") !== -1) { 
+            for(let i of items){ 
+                if(i.type.indexOf("image") !== -1){ 
                     e.preventDefault(); 
                     window.processImageForAI(i.getAsFile()); 
                     break; 
@@ -791,46 +716,43 @@
             const stD = document.getElementById('ocr-status'); 
             const dz = document.getElementById('drop-zone');
             
-            if(!window.apiKey) {
-                return Swal.fire('تنبيه','أدخل مفتاح الذكاء الاصطناعي من الإعدادات ⚙️','warning');
-            }
+            if(!window.apiKey) return Swal.fire('تنبيه','أدخل مفتاح الذكاء الاصطناعي من الإعدادات','warning');
             
             try {
-                const b64 = await new Promise((res, rej) => { 
+                const b64 = await new Promise((res,rej) => { 
                     const r = new FileReader(); 
                     r.onload = () => res(r.result.split(',')[1]); 
                     r.onerror = rej; 
                     r.readAsDataURL(blob); 
                 });
                 
-                const dUrl = `data:${blob.type || "image/png"};base64,${b64}`;
-                
                 dz.classList.add('hidden'); 
                 stD.classList.remove('hidden'); 
-                stD.style.backgroundImage = `linear-gradient(rgba(239,246,255,0.85),rgba(239,246,255,0.95)),url('${dUrl}')`; 
+                stD.style.backgroundImage = `linear-gradient(rgba(239,246,255,0.85),rgba(239,246,255,0.95)),url('data:${blob.type||"image/png"};base64,${b64}')`; 
                 stD.style.backgroundSize = 'cover'; 
                 stD.style.backgroundPosition = 'center';
+
+                // الأمر الصارم للذكاء الاصطناعي
+                const strictPrompt = `أنت خبير محترف في قراءة واستخراج البيانات (OCR). مهمتك استخراج بيانات العمال بدقة فائقة من الصورة المرفقة، وإرجاعها كـ مصفوفة JSON Array صالحة فقط، بدون أي شروحات إضافية.
+المفاتيح المطلوبة حصرياً لكل عامل:
+- "workerName": (الاسم بالعربي | English Name). إذا لم تجد الإنجليزي اكتب العربي فقط.
+- "nationality": الجنسية.
+- "profession": المهنة.
+- "residencyEnd": تاريخ انتهاء الإقامة أو تصريح العمل بصيغة YYYY-MM-DD. (تحذير: تجاهل تاريخ انتهاء الجواز تماماً).`;
+
+                const res = await window.fetchFromGemini(window.apiKey, { 
+                    contents: [{ role: "user", parts: [{ text: strictPrompt }, { inlineData: { mimeType: blob.type||"image/png", data: b64 } }] }] 
+                });
                 
-                const prmpt = `أنت محرك استخراج بيانات (OCR). استخرج بيانات العمال وارجع النتيجة فقط على شكل مصفوفة JSON Array صالحة. المفاتيح المطلوبة هي: workerName (الاسم بالعربي | English Name), nationality, profession, residencyEnd (صيغة YYYY-MM-DD وتجاهل تاريخ انتهاء الجواز).`;
-                const pay = { 
-                    contents: [{ role: "user", parts: [{ text: prmpt }, { inlineData: { mimeType: blob.type || "image/png", data: b64 } }] }] 
-                };
+                if(!res.success) throw new Error();
                 
-                const res = await window.fetchFromGemini(window.apiKey, pay); 
+                let txt = res.result.candidates[0].content.parts[0].text.replace(/```json/gi,'').replace(/```/g,'').trim(); 
+                let arr = null;
                 
-                if(!res.success) throw new Error(res.error);
-                
-                let txt = res.result.candidates[0].content.parts[0].text.replace(/```json/gi,'').replace(/```/g,'').trim();
-                let arr = null; 
-                
-                if(txt.match(/\[[\s\S]*\]/)) {
-                    arr = JSON.parse(txt.match(/\[[\s\S]*\]/)[0]); 
-                } else if(txt.match(/\{[\s\S]*\}/)) {
-                    arr = [JSON.parse(txt.match(/\{[\s\S]*\}/)[0])]; 
-                } else {
-                    throw new Error("تعذر تحليل البيانات");
-                }
-                
+                if(txt.match(/\[[\s\S]*\]/)) arr = JSON.parse(txt.match(/\[[\s\S]*\]/)[0]); 
+                else if(txt.match(/\{[\s\S]*\}/)) arr = [JSON.parse(txt.match(/\{[\s\S]*\}/)[0])]; 
+                else throw new Error();
+
                 if(arr.length === 1) { 
                     const d = arr[0]; 
                     if(d.workerName) document.getElementById('wName').value = d.workerName; 
@@ -838,8 +760,9 @@
                     if(d.profession) document.getElementById('wProfession').value = d.profession; 
                     if(d.residencyEnd && d.residencyEnd !== 'غير محدد') document.getElementById('rEnd').value = window.displayDate(d.residencyEnd); 
                     document.getElementById('iEnd').value = ''; 
-                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التفريغ بنجاح', showConfirmButton:false, timer:2000}); 
-                } else if(arr.length > 1) {
+                    Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم تفريغ البيانات', showConfirmButton:false, timer:2000}); 
+                }
+                else if(arr.length > 1) {
                     const {value: bD} = await Swal.fire({ 
                         title: `تم استخراج ${arr.length} سجلات ⚡`, 
                         html: `
@@ -851,7 +774,7 @@
                                 ${arr.map((w) => `
                                     <div class="border-b pb-2 mb-2 flex justify-between items-center">
                                         <div class="truncate pl-2">
-                                            <b class="text-[#8B0000]">${w.workerName || 'بدون'}</b>
+                                            <b class="text-[#8B0000]">${w.workerName || 'عامل يحتاج تعديل'}</b>
                                             <span class="text-[9px] text-slate-500 mt-1 block">${w.nationality || '-'} | ${w.profession || '-'}</span>
                                         </div>
                                         <span dir="ltr" class="bg-red-50 text-red-600 px-2 py-1 rounded font-bold flex-shrink-0">${window.displayDate(w.residencyEnd) || '-'}</span>
@@ -862,21 +785,23 @@
                         showCancelButton: true, 
                         confirmButtonText: 'حفظ الجميع', 
                         cancelButtonText: 'إلغاء', 
-                        preConfirm: () => { 
-                            return { 
-                                sponsorName: document.getElementById('b-sName').value.trim() || 'بدون كفيل', 
-                                sponsorPhone: document.getElementById('b-sPhone').value.trim() 
-                            }; 
-                        } 
+                        preConfirm: () => ({ 
+                            sponsorName: document.getElementById('b-sName').value.trim() || 'بدون كفيل', 
+                            sponsorPhone: document.getElementById('b-sPhone').value.trim() 
+                        }) 
                     });
                     
                     if(bD) { 
-                        Swal.fire({title:'جاري الحفظ الجماعي...', didOpen:()=>Swal.showLoading()}); 
+                        Swal.fire({title:'جاري الحفظ المجمع...', didOpen:()=>Swal.showLoading()}); 
                         const batch = window.writeBatch(window.db); 
                         let c = 0; 
                         
                         for(let w of arr) { 
-                            if(!w.workerName) continue; 
+                            // الحماية الفولاذية في حالة عدم وجود اسم
+                            if(!w.workerName || w.workerName.toString().trim() === '') {
+                                w.workerName = 'عامل يحتاج تعديل | Needs Edit';
+                            }
+                            
                             if(window.workers.some(ex => ex.workerName === w.workerName && ex.sponsorName === bD.sponsorName)) continue; 
                             
                             batch.set(window.doc(window.collection(window.db, 'workers')), {
@@ -892,13 +817,12 @@
                             }); 
                             c++; 
                         } 
-                        
                         await batch.commit(); 
                         Swal.fire('نجاح',`تم إضافة ${c} سجل بنجاح.`,`success`); 
                     }
                 }
             } catch(e) { 
-                Swal.fire('فشل','عذراً، لم يستطع المحرك العثور على بيانات واضحة.','error'); 
+                Swal.fire('فشل','لم يتمكن المحرك من قراءة الصورة بدقة. يرجى التأكد من وضوح الصورة.','error'); 
             } finally { 
                 dz.classList.remove('hidden'); 
                 stD.classList.add('hidden'); 
@@ -906,142 +830,141 @@
             }
         };
 
+        // الرسم والفلاتر
         window.handleSearch = (e) => { 
-            window.searchQuery = e.target.value.toLowerCase(); 
+            window.searchQuery = (e.target.value || '').toString().toLowerCase(); 
             window.renderListsOnly(); 
         };
-
+        
         window.renderListsOnly = function() {
-            const container = document.getElementById('lists-container'); 
-            if(!container) return;
-            
-            const tc = document.getElementById('total-counter'); 
-            if(tc) tc.innerText = window.workers.length;
-            
-            const fW = window.workers.filter(w => 
-                (w.workerName && w.workerName.toLowerCase().includes(window.searchQuery)) || 
-                (w.sponsorName && w.sponsorName.toLowerCase().includes(window.searchQuery)) || 
-                (w.sponsorPhone && w.sponsorPhone.includes(window.searchQuery))
-            );
-            
-            const uW = fW.filter(w => window.getDaysDiff(w.residencyEnd) <= 7 || window.getDaysDiff(w.insuranceEnd) <= 7);
-            const sW = fW.filter(w => !uW.includes(w));
-
-            const renderCard = (w) => {
-                const rS = window.getStatus(w.residencyEnd); 
-                const iS = window.getStatus(w.insuranceEnd); 
-                const isW = rS.isWarning || iS.isWarning; 
-                const rA = window.getDaysDiff(w.residencyEnd) <= 7; 
-                const iA = window.getDaysDiff(w.insuranceEnd) <= 7;
+            try {
+                const container = document.getElementById('lists-container'); 
+                if(!container) return;
                 
-                let nH = `<h5 class="text-sm font-black text-slate-800">${w.workerName || 'بدون اسم'}</h5>`; 
-                if((w.workerName || '').includes('|')) { 
-                    let p = w.workerName.split('|'); 
-                    nH = `<h5 class="text-sm font-black text-slate-800">${p[0].trim()}<span class="block text-[10px] text-slate-500 font-bold mt-0.5" dir="ltr">${p[1].trim()}</span></h5>`; 
-                }
+                const tc = document.getElementById('total-counter'); 
+                if(tc) tc.innerText = window.workers.length;
                 
-                return `
-                    <div class="${isW ? 'bg-white border-red-500 shadow-md scale-[1.01]' : 'bg-slate-50 border-slate-200'} rounded-2xl p-4 transition-all duration-300 border-2 relative group">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-slate-200/80 gap-3">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <div>${nH}</div>
-                                <span class="text-[10px] bg-slate-200/70 text-slate-600 px-2.5 py-1 rounded-md font-bold">${w.profession || '-'} | ${w.nationality || '-'}</span>
-                            </div>
-                            <div class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                <button onclick="window.aiDraftMessage('${w.id}')" class="flex-1 sm:flex-none bg-[#25D366]/10 text-[#1da851] hover:bg-[#25D366] hover:text-white px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#25D366]/30">واتساب</button>
-                                <button onclick="window.editWorker('${w.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-white p-1.5 rounded-xl transition border border-blue-200 shadow-sm">✏️</button>
-                                <button onclick="window.deleteWorker('${w.id}')" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white p-1.5 rounded-xl transition border border-red-200 shadow-sm">🗑️</button>
-                            </div>
-                        </div>
-                        <div class="flex gap-3 w-full">
-                            <div class="flex-1 flex justify-between items-center bg-white border ${rS.border} ${rA ? 'urgent-pulse' : ''} p-3 rounded-xl shadow-sm">
-                                <div>
-                                    <span class="text-[9px] text-slate-400 font-bold mb-1 block">الإقامة</span>
-                                    <span class="text-xs font-black text-slate-700" dir="ltr">${window.formatDateDDMMYYYY(w.residencyEnd)}</span>
-                                </div>
-                                <div class="flex flex-col items-end gap-1">
-                                    <span class="text-[10px] font-black ${rS.text}">${rS.daysText || rS.label}</span>
-                                    ${rA ? `<button onclick="window.renewDocument('${w.id}','residency')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}
-                                </div>
-                            </div>
-                            <div class="flex-1 flex justify-between items-center bg-white border ${iS.border} ${iA ? 'urgent-pulse' : ''} p-3 rounded-xl shadow-sm">
-                                <div>
-                                    <span class="text-[9px] text-slate-400 font-bold mb-1 block">التأمين</span>
-                                    <span class="text-xs font-black text-slate-700" dir="ltr">${window.formatDateDDMMYYYY(w.insuranceEnd)}</span>
-                                </div>
-                                <div class="flex flex-col items-end gap-1">
-                                    <span class="text-[10px] font-black ${iS.text}">${iS.daysText || iS.label}</span>
-                                    ${iA ? `<button onclick="window.renewDocument('${w.id}','insurance')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            };
-
-            const renderGrp = (list, isUrg) => {
-                if(!list.length) return ''; 
-                const grps = {}; 
-                
-                list.forEach(w => { 
-                    const s = w.sponsorName || 'بدون كفيل'; 
-                    if(!grps[s]) grps[s] = { phone: w.sponsorPhone, ws: [] }; 
-                    grps[s].ws.push(w); 
+                const fW = window.workers.filter(w => {
+                    const n = (w.workerName || '').toString().toLowerCase();
+                    const s = (w.sponsorName || '').toString().toLowerCase();
+                    const p = (w.sponsorPhone || '').toString().toLowerCase();
+                    const q = (window.searchQuery || '').toLowerCase();
+                    return n.includes(q) || s.includes(q) || p.includes(q);
                 });
                 
-                let html = '<div class="columns-1 md:columns-2 gap-4">'; 
-                
-                for(const [s, d] of Object.entries(grps)) {
-                    const isC = d.ws.some(w => w.contacted);
+                const uW = fW.filter(w => window.getDaysDiff(w.residencyEnd) <= 7 || window.getDaysDiff(w.insuranceEnd) <= 7);
+                const sW = fW.filter(w => !uW.includes(w));
+
+                const renderCard = (w) => {
+                    const rS = window.getStatus(w.residencyEnd); 
+                    const iS = window.getStatus(w.insuranceEnd); 
+                    const isW = rS.isWarning || iS.isWarning; 
+                    const rA = window.getDaysDiff(w.residencyEnd) <= 7; 
+                    const iA = window.getDaysDiff(w.insuranceEnd) <= 7;
+                    const nStr = (w.workerName || 'عامل يحتاج تعديل').toString();
                     
-                    html += `
-                        <details class="break-inside-avoid mb-4 rounded-3xl border ${isUrg ? 'border-red-300 shadow-lg' : 'border-white/10 bg-white/5'} overflow-hidden group">
-                            <summary class="px-4 py-4 cursor-pointer flex justify-between items-center ${isUrg ? 'bg-red-50 text-red-900' : 'text-white hover:bg-white/10'} transition-all">
-                                <div class="flex items-center gap-3 overflow-hidden">
-                                    <div class="w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center ${isUrg ? 'bg-red-200 text-red-600' : 'bg-white/20 text-white'}">💼</div>
-                                    <div class="truncate">
-                                        <h4 class="text-sm font-black truncate">${s}</h4>
-                                        <p class="text-[10px] opacity-70" dir="ltr">${d.phone || 'بدون هاتف'}</p>
+                    let nH = `<h5 class="text-sm font-black text-slate-800">${nStr}</h5>`; 
+                    if(nStr.includes('|')) { 
+                        let p = nStr.split('|'); 
+                        nH = `<h5 class="text-sm font-black text-slate-800">${(p[0]||'').trim()}<span class="block text-[10px] text-slate-500 font-bold mt-0.5" dir="ltr">${(p[1]||'').trim()}</span></h5>`; 
+                    }
+                    
+                    return `
+                        <div class="${isW ? 'bg-white border-red-500 shadow-md scale-[1.01]' : 'bg-slate-50 border-slate-200'} rounded-2xl p-4 transition-all duration-300 border-2 relative group">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-slate-200/80 gap-3">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <div>${nH}</div>
+                                    <span class="text-[10px] bg-slate-200/70 text-slate-600 px-2.5 py-1 rounded-md font-bold">${(w.profession||'-').toString()} | ${(w.nationality||'-').toString()}</span>
+                                </div>
+                                <div class="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <button onclick="window.aiDraftMessage('${w.id}')" class="flex-1 sm:flex-none bg-[#25D366]/10 text-[#1da851] hover:bg-[#25D366] hover:text-white px-3 py-1.5 rounded-xl text-[11px] font-black border border-[#25D366]/30">واتساب</button>
+                                    <button onclick="window.editWorker('${w.id}')" class="bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-white p-1.5 rounded-xl transition border border-blue-200 shadow-sm">✏️</button>
+                                    <button onclick="window.deleteWorker('${w.id}')" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white p-1.5 rounded-xl transition border border-red-200 shadow-sm">🗑️</button>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 w-full">
+                                <div class="flex-1 flex justify-between items-center bg-white border ${rS.border} ${rA?'urgent-pulse':''} p-3 rounded-xl shadow-sm">
+                                    <div>
+                                        <span class="text-[9px] text-slate-400 font-bold mb-1 block">الإقامة</span>
+                                        <span class="text-xs font-black text-slate-700" dir="ltr">${window.formatDateDDMMYYYY(w.residencyEnd)}</span>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="text-[10px] font-black ${rS.text}">${rS.daysText || rS.label}</span>
+                                        ${rA ? `<button onclick="window.renewDocument('${w.id}','residency')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-1.5 flex-shrink-0">
-                                    ${isC ? `<span class="bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">✓ تواصلنا</span>` : ''}
-                                    <button onclick="window.deleteSponsor(event,'${s}')" class="${isUrg ? 'bg-red-200 hover:bg-red-500 text-red-700 hover:text-white' : 'bg-white/10 hover:bg-red-500 text-white'} p-1 rounded-md transition" title="إبادة الكفيل">🗑️</button>
-                                    <span class="${isUrg ? 'bg-red-600' : 'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${d.ws.length}</span>
+                                <div class="flex-1 flex justify-between items-center bg-white border ${iS.border} ${iA?'urgent-pulse':''} p-3 rounded-xl shadow-sm">
+                                    <div>
+                                        <span class="text-[9px] text-slate-400 font-bold mb-1 block">التأمين</span>
+                                        <span class="text-xs font-black text-slate-700" dir="ltr">${window.formatDateDDMMYYYY(w.insuranceEnd)}</span>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="text-[10px] font-black ${iS.text}">${iS.daysText || iS.label}</span>
+                                        ${iA ? `<button onclick="window.renewDocument('${w.id}','insurance')" class="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded shadow">تجديد</button>` : ''}
+                                    </div>
                                 </div>
-                            </summary>
-                            <div class="p-4 bg-black/10 flex flex-col gap-3 border-t ${isUrg ? 'border-red-100' : 'border-white/5'}">
-                                ${d.ws.map(w => renderCard(w)).join('')}
                             </div>
-                        </details>
-                    `;
-                } 
-                return html + '</div>';
-            };
-
-            container.innerHTML = `
-                ${getDashboardHtml()}
-                ${uW.length > 0 ? `
-                    <section class="mb-10">
-                        <h3 class="text-white font-black text-lg flex items-center gap-2 mb-5 px-2">🔴 إنذارات الإنتهاء الحرجة</h3>
-                        ${renderGrp(uW, true)}
-                    </section>
-                ` : ''}
-                <section>
-                    <h3 class="text-white font-black text-lg mb-5 opacity-95 px-2">📁 سجل الكفلاء الأساسي</h3>
-                    ${sW.length > 0 ? renderGrp(sW, false) : `
-                        <div class="text-center py-10 border-2 border-dashed border-white/20 rounded-3xl bg-black/20 text-white/50 text-sm font-bold">
-                            لا توجد سجلات حالياً
                         </div>
-                    `}
-                </section>
-            `;
-            initFlatpickr();
+                    `;
+                };
+
+                const renderGrp = (list, isUrg) => {
+                    if(!list.length) return ''; 
+                    const grps = {}; 
+                    
+                    list.forEach(w => { 
+                        const s = (w.sponsorName || 'بدون كفيل').toString(); 
+                        if(!grps[s]) grps[s] = { phone: w.sponsorPhone, ws: [] }; 
+                        grps[s].ws.push(w); 
+                    });
+                    
+                    let html = '<div class="columns-1 md:columns-2 gap-4">'; 
+                    for(const [s, d] of Object.entries(grps)) {
+                        const isC = d.ws.some(w => w.contacted);
+                        html += `
+                            <details class="break-inside-avoid mb-4 rounded-3xl border ${isUrg ? 'border-red-300 shadow-lg' : 'border-white/10 bg-white/5'} overflow-hidden group">
+                                <summary class="px-4 py-4 cursor-pointer flex justify-between items-center ${isUrg ? 'bg-red-50 text-red-900' : 'text-white hover:bg-white/10'} transition-all">
+                                    <div class="flex items-center gap-3 overflow-hidden">
+                                        <div class="w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center ${isUrg ? 'bg-red-200 text-red-600' : 'bg-white/20 text-white'}">💼</div>
+                                        <div class="truncate">
+                                            <h4 class="text-sm font-black truncate">${s}</h4>
+                                            <p class="text-[10px] opacity-70" dir="ltr">${(d.phone || 'بدون هاتف').toString()}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                                        ${isC ? `<span class="bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">✓ تواصلنا</span>` : ''}
+                                        <button onclick="window.deleteSponsor(event,'${s}')" class="${isUrg ? 'bg-red-200 hover:bg-red-500 text-red-700 hover:text-white' : 'bg-white/10 hover:bg-red-500 text-white'} p-1 rounded-md transition" title="إبادة الكفيل">🗑️</button>
+                                        <span class="${isUrg ? 'bg-red-600' : 'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${d.ws.length}</span>
+                                    </div>
+                                </summary>
+                                <div class="p-4 bg-black/10 flex flex-col gap-3 border-t ${isUrg ? 'border-red-100' : 'border-white/5'}">
+                                    ${d.ws.map(w => renderCard(w)).join('')}
+                                </div>
+                            </details>
+                        `;
+                    } 
+                    return html + '</div>';
+                };
+
+                container.innerHTML = `
+                    ${getDashboardHtml()}
+                    ${uW.length > 0 ? `<section class="mb-10"><h3 class="text-white font-black text-lg flex items-center gap-2 mb-5 px-2">🔴 إنذارات الإنتهاء الحرجة</h3>${renderGrp(uW, true)}</section>` : ''}
+                    <section><h3 class="text-white font-black text-lg mb-5 opacity-95 px-2">📁 سجل الكفلاء الأساسي</h3>${sW.length > 0 ? renderGrp(sW, false) : `<div class="text-center py-10 border-2 border-dashed border-white/20 rounded-3xl bg-black/20 text-white/50 text-sm font-bold">لا توجد سجلات حالياً</div>`}</section>
+                `;
+                initFlatpickr();
+                
+                // إغلاق حالة التحميل بنجاح
+                window.updateSyncUI('connected');
+                
+            } catch (error) {
+                console.error("Render Error:", error);
+                window.updateSyncUI('error');
+            }
         };
 
         window.renderMainDashboard = function() {
             const app = document.getElementById('main-app');
-            const dOpts = [...new Set(window.workers.map(w => w.sponsorName).filter(s => s && s !== 'بدون كفيل'))].map(s => `<option value="${s}">`).join('');
+            const dOpts = [...new Set(window.workers.map(w => (w.sponsorName || '').toString()).filter(s => s && s !== 'بدون كفيل'))].map(s => `<option value="${s}">`).join('');
             
             app.innerHTML = `
                 <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
@@ -1050,7 +973,7 @@
                             <div class="text-center md:text-right">
                                 <h1 class="text-3xl sm:text-4xl font-black text-white">مكتب مندوبك</h1>
                                 <div class="flex items-center gap-2 mt-1.5 justify-center md:justify-start">
-                                    <p class="text-[12px] font-black text-[#FFD700] bg-black/40 px-3 py-1 rounded-full border border-white/5">برنامج المتابعة والتذكير</p>
+                                    <p class="text-[12px] font-black text-[#FFD700] bg-black/40 px-3 py-1 rounded-full border border-white/5">برنامج المتابعة والتذكير الذكي</p>
                                     <div id="sync-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/50 text-white/80">جاري المزامنة...</div>
                                 </div>
                             </div>
@@ -1100,7 +1023,7 @@
                                         <input id="sPhone" type="tel" placeholder="05X XXX XXXX" class="w-full input-field rounded-xl text-sm font-bold bg-slate-50 outline-none text-left" dir="ltr" autocomplete="off">
                                     </div>
                                     <div class="border-t-2 border-dashed border-slate-200 my-4 relative">
-                                        <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[10px] text-slate-400 font-bold">البيانات</span>
+                                        <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[10px] text-slate-400 font-bold">البيانات الأساسية</span>
                                     </div>
                                     <input id="wName" placeholder="الاسم (عربي أو إنجليزي)" class="w-full input-field rounded-xl text-sm font-black text-[#8B0000] bg-slate-50 outline-none" autocomplete="off">
                                     <div class="flex gap-3">
@@ -1129,14 +1052,10 @@
             window.renderListsOnly();
         };
 
-        // التحكم بتسجيل الدخول
-        window.logout = () => { location.reload(); };
-        
+        // تسجيل الدخول بالرقم السري
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const pass = document.getElementById('pass').value;
-            
-            // الباسوورد الافتراضي
             if (btoa(pass) === 'YTE5ODk=') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
@@ -1147,11 +1066,7 @@
             }
         });
 
-        // تهيئة محدد التواريخ
-        function initFlatpickr() {
-            // يتم استدعاؤها في كل مرة يتم فيها إعادة رسم القوائم
-        }
-        
+        function initFlatpickr() {}
     </script>
 </body>
 </html>
