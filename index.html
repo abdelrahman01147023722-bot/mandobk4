@@ -299,39 +299,22 @@
         };
 
         // إعدادات واجهة المستخدم والمفاتيح ورسالة الواتساب
-        // السحابة (Firebase)
-        window.startDataListeners = function() {
-            if (!window.isDbReady) { setTimeout(window.startDataListeners, 500); return; }
-            window.updateSyncUI('loading');
-            
-            window.onSnapshot(window.collection(window.db, 'workers'), (snapshot) => { 
-                window.workers = snapshot.docs.map(d => ({ ...d.data(), id: d.id, createdAt: d.data().createdAt || new Date().toISOString() })); 
-                window.renderListsOnly(); 
-            }, (err) => { console.error(err); window.updateSyncUI('error'); });
-            
-            window.onSnapshot(window.collection(window.db, 'renewals'), (snapshot) => { 
-                window.renewals = snapshot.docs.map(d => ({ ...d.data(), id: d.id })); 
-                window.renderListsOnly(); 
-            });
-            
-            window.onSnapshot(window.doc(window.db, 'config', 'dashboard'), (docSnap) => { 
-                if (docSnap.exists()) { window.dashConfig = docSnap.data() || window.dashConfig; window.renderListsOnly(); } 
-            });
-        };
-
-        // التعديل الثالث: إضافة خانة لرسالة الواتساب الآلية في الإعدادات
         window.openSettings = () => { 
             document.getElementById('setting-apiKey').value = window.apiKey; 
             const defaultWaMsg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ [الكفيل] نود إفادتكم بأن وثائق العامل لديكم ../[العامل] – المهنة [المهنة] – الجنسية [الجنسية] ، تنتهي بتاريخ [التاريخ] ([الوثيقة]).\nنرجو التواصل لاتخاذ إجراءات التجديد.\nمركز مندوبك`;
             document.getElementById('setting-waMsg').value = localStorage.getItem('mandoub_wa_msg') || defaultWaMsg;
             document.getElementById('settingsModal').classList.remove('hidden'); 
         };
-        window.closeSettings = () => { document.getElementById('settingsModal').classList.add('hidden'); };
+        
+        window.closeSettings = () => { 
+            document.getElementById('settingsModal').classList.add('hidden'); 
+        };
+        
         window.saveSettings = () => { 
-            const k=document.getElementById('setting-apiKey').value.trim(); 
+            const k = document.getElementById('setting-apiKey').value.trim(); 
             if(!k) return Swal.fire('خطأ','المفتاح مطلوب','error'); 
             localStorage.setItem('mandoub_api_key', k); 
-            window.apiKey=k; 
+            window.apiKey = k; 
             
             // حفظ رسالة الواتساب المخصصة
             const waMsg = document.getElementById('setting-waMsg').value.trim();
@@ -340,8 +323,24 @@
             window.closeSettings(); 
             Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم الحفظ', showConfirmButton:false, timer:2000}); 
         };
-        window.testApiConnection = async () => { const k=document.getElementById('setting-apiKey').value.trim(); const r=document.getElementById('api-test-result'); if(!k) return; r.innerHTML='<span class="text-blue-600 animate-pulse">جاري الفحص...</span>'; r.classList.remove('hidden'); const res=await window.fetchFromGemini(k, {contents:[{parts:[{text:"Hi"}]}]}); if(res.success) r.innerHTML=`<span class="text-green-600 font-bold block bg-green-50 rounded p-1">✅ يعمل بكفاءة!<br>${res.model}</span>`; else r.innerHTML=`<span class="text-red-600 font-bold block bg-red-50 rounded p-1">❌ مرفوض:<br>${res.error}</span>`; };
+        
+        window.testApiConnection = async () => { 
+            const k = document.getElementById('setting-apiKey').value.trim(); 
+            const r = document.getElementById('api-test-result'); 
+            if(!k) return; 
+            
+            r.innerHTML = '<span class="text-blue-600 animate-pulse">جاري الفحص...</span>'; 
+            r.classList.remove('hidden'); 
+            
+            const res = await window.fetchFromGemini(k, { contents: [{ parts: [{ text: "Hi" }] }] }); 
+            if(res.success) {
+                r.innerHTML = `<span class="text-green-600 font-bold block bg-green-50 rounded p-1">✅ يعمل بكفاءة!<br>${res.model}</span>`; 
+            } else {
+                r.innerHTML = `<span class="text-red-600 font-bold block bg-red-50 rounded p-1">❌ مرفوض:<br>${res.error}</span>`; 
+            }
+        };
 
+        // تصدير واستيراد إكسيل
         window.exportToExcel = () => {
             if(window.workers.length === 0) return Swal.fire("تنبيه","السجلات فارغة","info");
             
@@ -479,13 +478,13 @@
             const {value:vals} = await Swal.fire({ title:'تعديل السجل', html:`<div class="text-right space-y-3 p-2"><input id="e-sName" class="w-full border-2 p-2.5 rounded-xl outline-none" placeholder="اسم الكفيل" value="${w.sponsorName||''}"><input id="e-sPhone" class="w-full border-2 p-2.5 rounded-xl outline-none" placeholder="رقم الكفيل" value="${w.sponsorPhone||''}" dir="ltr"><input id="e-wName" class="w-full border-2 p-2.5 rounded-xl outline-none mt-2" placeholder="الاسم" value="${w.workerName||''}"><div class="flex gap-2"><input id="e-wNat" class="w-1/2 border-2 p-2.5 rounded-xl outline-none" placeholder="الجنسية" value="${w.nationality||''}"><input id="e-wProf" class="w-1/2 border-2 p-2.5 rounded-xl outline-none" placeholder="المهنة" value="${w.profession||''}"></div><div class="flex gap-2 mt-3"><div class="w-1/2"><label class="text-xs font-bold mb-1 block">تاريخ الإقامة</label><input id="e-rEnd" dir="ltr" class="w-full border-2 p-2 rounded-lg text-center" value="${window.displayDate(w.residencyEnd)}"></div><div class="w-1/2"><label class="text-xs font-bold mb-1 block">تاريخ التأمين</label><input id="e-iEnd" dir="ltr" class="w-full border-2 p-2 rounded-lg text-center" value="${window.displayDate(w.insuranceEnd)}"></div></div></div>`, showCancelButton:true, confirmButtonText:'حفظ التحديث', cancelButtonText:'إلغاء', confirmButtonColor:'#8B0000', preConfirm:()=>({ sponsorName:document.getElementById('e-sName').value.trim(), sponsorPhone:document.getElementById('e-sPhone').value.trim(), workerName:document.getElementById('e-wName').value.trim(), nationality:document.getElementById('e-wNat').value.trim(), profession:document.getElementById('e-wProf').value.trim(), residencyEnd:window.parseManualDate(document.getElementById('e-rEnd').value), insuranceEnd:window.parseManualDate(document.getElementById('e-iEnd').value) }) });
             if(vals){ if(!vals.workerName) return Swal.fire('خطأ','الاسم إلزامي','error'); try{ await window.updateDoc(window.doc(window.db, 'workers', id), vals); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التحديث', showConfirmButton:false, timer:1500}); }catch(e){} }
         };
-        // التعديل الأول: إصلاح لوحة الإنجاز لتسجيل التواريخ كـ Object وليس String لضمان المقارنة الدقيقة
+        
         window.renewDocument = async (id, type) => {
             const w = window.workers.find(x=>x.id===id); const tL = type==='residency'?'الإقامة':'التأمين';
             const {value:nD} = await Swal.fire({ title:`تجديد (${tL})`, html:`<p class="mb-4 text-sm font-bold">العامل: <span class="text-[#8B0000]">${w.workerName}</span></p><input id="rn-date" dir="ltr" class="swal2-input text-center" placeholder="يوم-شهر-سنة">`, showCancelButton:true, confirmButtonText:'اعتماد', cancelButtonText:'إلغاء', preConfirm:()=>{ const v=document.getElementById('rn-date').value.trim(); if(!v) return Swal.showValidationMessage('مطلوب التاريخ'); const fd=window.parseManualDate(v); if(isNaN(new Date(fd).getTime())) return Swal.showValidationMessage('صيغة غير صحيحة'); return fd; } });
             if(nD){ try{ const upD = type==='residency'?{residencyEnd:nD,contacted:false}:{insuranceEnd:nD,contacted:false}; await window.updateDoc(window.doc(window.db, 'workers', id), upD); await window.addDoc(window.collection(window.db, 'renewals'), { workerId:id, workerName:w.workerName, sponsorName:w.sponsorName, type:tL, renewDate:new Date().toISOString() }); Swal.fire({toast:true, position:'top-end', icon:'success', title:'تم التجديد', showConfirmButton:false, timer:3000}); }catch(e){} }
         };
-        // التعديل الثالث (تابع): سحب رسالة الواتساب من الإعدادات
+        
         window.aiDraftMessage = (id) => { 
             const w=window.workers.find(x=>x.id===id); 
             let p=(w.sponsorPhone||"").toString().replace(/\D/g,''); 
@@ -520,12 +519,18 @@
 
         window.updateDashText = async (type, val) => { if(type==='start') window.dashConfig.manualStart=val.trim(); if(type==='end') window.dashConfig.manualEnd=val.trim(); try{ await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); }catch(e){} };
         window.resetDashboard = async () => { Swal.fire({ title:'تصفير الدورة؟', icon:'warning', showCancelButton:true, confirmButtonColor:'#8B0000', confirmButtonText:'نعم', cancelButtonText:'إلغاء' }).then(async(res)=>{ if(res.isConfirmed){ window.dashConfig.resetTimestamp=new Date().toISOString(); window.dashConfig.manualStart=""; window.dashConfig.manualEnd=""; try{ await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); }catch(e){} } }); };
-        window.printDashboard = () => { const rT=(window.dashConfig&&window.dashConfig.resetTimestamp)?window.dashConfig.resetTimestamp:new Date(0).toISOString(); const aP=window.workers.filter(w=>w.createdAt&&new Date(w.createdAt)>=new Date(rT)).length; const rL=window.renewals.filter(r=>r.renewDate&&new Date(r.renewDate)>=new Date(rT)); const tR=rL.length; const pct=aP>0?Math.min(100,Math.round((tR/aP)*100)):0; let tRows=rL.length>0?[...rL].sort((a,b)=>new Date(b.renewDate||0)-new Date(a.renewDate||0)).map((r,i)=>`<tr><td>${i+1}</td><td>${(r.workerName||'').toString().replace('|','-')}</td><td>${r.sponsorName||'-'}</td><td>${r.type||'-'}</td><td dir="ltr">${window.formatDateDDMMYYYY(r.renewDate)}</td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;">لا يوجد إنجازات</td></tr>`; const html=`<html dir="rtl" lang="ar"><head><title>تقرير الإنجازات</title><style>body{font-family:Tahoma,sans-serif;padding:40px;color:#333;line-height:1.6}.header{text-align:center;margin-bottom:40px;border-bottom:2px solid #8B0000;padding-bottom:20px}.header h1{color:#8B0000;margin:0 0 10px 0}.stats-grid{display:flex;justify-content:space-between;margin-bottom:40px;gap:20px}.stat-box{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #cbd5e1;padding:12px;text-align:right}th{background-color:#f1f5f9}</style></head><body><div class="header"><h1>📊 تقرير لوحة الإنجازات</h1><p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}</p></div><div class="stats-grid"><div class="stat-box"><h3>مسجل حديثاً</h3><h2>${aP}</h2></div><div class="stat-box"><h3>تم تجديده</h3><h2 style="color:#16a34a">${tR}</h2></div><div class="stat-box"><h3>نسبة الإنجاز</h3><h2>${pct}%</h2></div></div><table><thead><tr><th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">الوثيقة</th><th width="20%">التاريخ</th></tr></thead><tbody>${tRows}</tbody></table></body></html>`; const pw=window.open('','','width=900,height=700'); pw.document.write(html); pw.document.close(); pw.focus(); setTimeout(()=>{pw.print();pw.close();},500); };
+        window.printDashboard = () => { 
+            const rT=(window.dashConfig&&window.dashConfig.resetTimestamp)?window.dashConfig.resetTimestamp:new Date(0).toISOString(); 
+            const aP=window.workers.filter(w=>w.createdAt&&new Date(w.createdAt)>=new Date(rT)).length; 
+            const rL=window.renewals.filter(r=>r.renewDate&&new Date(r.renewDate)>=new Date(rT)); 
+            const tR=rL.length; const pct=aP>0?Math.min(100,Math.round((tR/aP)*100)):0; 
+            let tRows=rL.length>0?[...rL].sort((a,b)=>new Date(b.renewDate||0)-new Date(a.renewDate||0)).map((r,i)=>`<tr><td>${i+1}</td><td>${(r.workerName||'').toString().replace('|','-')}</td><td>${r.sponsorName||'-'}</td><td>${r.type||'-'}</td><td dir="ltr">${window.formatDateDDMMYYYY(r.renewDate)}</td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;">لا يوجد إنجازات</td></tr>`; 
+            const html=`<html dir="rtl" lang="ar"><head><title>تقرير الإنجازات</title><style>body{font-family:Tahoma,sans-serif;padding:40px;color:#333;line-height:1.6}.header{text-align:center;margin-bottom:40px;border-bottom:2px solid #8B0000;padding-bottom:20px}.header h1{color:#8B0000;margin:0 0 10px 0}.stats-grid{display:flex;justify-content:space-between;margin-bottom:40px;gap:20px}.stat-box{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #cbd5e1;padding:12px;text-align:right}th{background-color:#f1f5f9}</style></head><body><div class="header"><h1>📊 تقرير لوحة الإنجازات</h1><p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}</p></div><div class="stats-grid"><div class="stat-box"><h3>مسجل حديثاً</h3><h2>${aP}</h2></div><div class="stat-box"><h3>تم تجديده</h3><h2 style="color:#16a34a">${tR}</h2></div><div class="stat-box"><h3>نسبة الإنجاز</h3><h2>${pct}%</h2></div></div><table><thead><tr><th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">الوثيقة</th><th width="20%">التاريخ</th></tr></thead><tbody>${tRows}</tbody></table></body></html>`; 
+            const pw=window.open('','','width=900,height=700'); pw.document.write(html); pw.document.close(); pw.focus(); setTimeout(()=>{pw.print();pw.close();},500); 
+        };
         
-        // التعديل الثاني و التعديل الرابع: جعل اللوحة منسدلة فقط في شريط أبيض بستروك أسود
         function getDashboardHtml() { 
             const rT=(window.dashConfig&&window.dashConfig.resetTimestamp)?window.dashConfig.resetTimestamp:new Date(0).toISOString(); 
-            // التعديل الأول (تابع): استخدام new Date() للمقارنة الدقيقة
             const aP=window.workers.filter(w=>w.createdAt&&new Date(w.createdAt)>=new Date(rT)).length; 
             const rL=window.renewals.filter(r=>r.renewDate&&new Date(r.renewDate)>=new Date(rT)); 
             const tR=rL.length; const pct=aP>0?Math.min(100,Math.round((tR/aP)*100)):0; 
@@ -568,179 +573,6 @@
         }
 
         window.handleImageFile = async (e) => { const f=e.target.files[0]; if(f){ window.processImageForAI(f); e.target.value=''; } };
-            if(rDays <= 7 && iDays <= 7) {
-                eT = "الإقامة والتأمين";
-                eD = `${window.formatDateDDMMYYYY(w.residencyEnd)} و ${window.formatDateDDMMYYYY(w.insuranceEnd)}`;
-            } else if(rDays <= 7) {
-                eT = "الإقامة";
-                eD = window.formatDateDDMMYYYY(w.residencyEnd);
-            } else {
-                eT = "التأمين";
-                eD = window.formatDateDDMMYYYY(w.insuranceEnd);
-            } 
-            
-            const nm = (w.workerName || '').toString().split('|')[0]; 
-            
-            // سحب رسالة الواتساب من الإعدادات وإحلال المتغيرات
-            const defaultMsg = `* السلام عليكم ورحمة الله وبركاته*...،\nالسيد/ [الكفيل] نود إفادتكم بأن وثائق العامل لديكم ../[العامل] – المهنة [المهنة] – الجنسية [الجنسية] ، تنتهي بتاريخ [التاريخ] ([الوثيقة]).\nنرجو التواصل لاتخاذ إجراءات التجديد.\nمركز مندوبك`;
-            let baseMsg = localStorage.getItem('mandoub_wa_msg') || defaultMsg;
-            
-            const msg = baseMsg
-                .replace(/\[الكفيل\]/g, w.sponsorName || '')
-                .replace(/\[العامل\]/g, nm || '')
-                .replace(/\[المهنة\]/g, w.profession || '-')
-                .replace(/\[الجنسية\]/g, w.nationality || '-')
-                .replace(/\[الوثيقة\]/g, eT)
-                .replace(/\[التاريخ\]/g, eD);
-            
-            window.open(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? `whatsapp://send?phone=${p}&text=${encodeURIComponent(msg)}` : `https://web.whatsapp.com/send/?phone=${p}&text=${encodeURIComponent(msg)}`, '_blank'); 
-        };
-
-        // دوال الإحصائيات (Dashboard)
-        window.updateDashText = async (type, val) => { 
-            if(type === 'start') window.dashConfig.manualStart = val.trim(); 
-            if(type === 'end') window.dashConfig.manualEnd = val.trim(); 
-            try { await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); } catch(e) {} 
-        };
-
-        window.resetDashboard = async () => { 
-            Swal.fire({ 
-                title:'تصفير الدورة؟', 
-                icon:'warning', 
-                showCancelButton:true, 
-                confirmButtonColor:'#8B0000', 
-                confirmButtonText:'نعم', 
-                cancelButtonText:'إلغاء' 
-            }).then(async(res) => { 
-                if(res.isConfirmed) { 
-                    window.dashConfig.resetTimestamp = new Date().toISOString(); 
-                    window.dashConfig.manualStart = ""; 
-                    window.dashConfig.manualEnd = ""; 
-                    try { await window.setDoc(window.doc(window.db, 'config', 'dashboard'), window.dashConfig); } catch(e) {} 
-                } 
-            }); 
-        };
-
-        window.printDashboard = () => { 
-            const rT = (window.dashConfig && window.dashConfig.resetTimestamp) ? window.dashConfig.resetTimestamp : new Date(0).toISOString(); 
-            const aP = window.workers.filter(w => w.createdAt && new Date(w.createdAt) >= new Date(rT)).length; 
-            const rL = window.renewals.filter(r => r.renewDate && new Date(r.renewDate) >= new Date(rT)); 
-            const tR = rL.length; 
-            const pct = aP > 0 ? Math.min(100, Math.round((tR/aP)*100)) : 0; 
-            
-            let tRows = rL.length > 0 ? [...rL].sort((a,b) => new Date(b.renewDate||0) - new Date(a.renewDate||0)).map((r,i) => `
-                <tr>
-                    <td>${i+1}</td>
-                    <td>${(r.workerName||'').toString().replace('|','-')}</td>
-                    <td>${r.sponsorName||'-'}</td>
-                    <td>${r.type||'-'}</td>
-                    <td dir="ltr">${window.formatDateDDMMYYYY(r.renewDate)}</td>
-                </tr>
-            `).join('') : `<tr><td colspan="5" style="text-align:center;">لا يوجد إنجازات</td></tr>`; 
-            
-            const html = `
-                <html dir="rtl" lang="ar">
-                <head>
-                    <title>تقرير الإنجازات</title>
-                    <style>
-                        body { font-family: Tahoma, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
-                        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #8B0000; padding-bottom: 20px; }
-                        .header h1 { color: #8B0000; margin: 0 0 10px 0; }
-                        .stats-grid { display: flex; justify-content: space-between; margin-bottom: 40px; gap: 20px; }
-                        .stat-box { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                        th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: right; }
-                        th { background-color: #f1f5f9; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>📊 تقرير لوحة الإنجازات</h1>
-                        <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-box"><h3>مسجل حديثاً</h3><h2>${aP}</h2></div>
-                        <div class="stat-box"><h3>تم تجديده</h3><h2 style="color:#16a34a">${tR}</h2></div>
-                        <div class="stat-box"><h3>نسبة الإنجاز</h3><h2>${pct}%</h2></div>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th width="5%">م</th><th width="30%">اسم العامل</th><th width="30%">الكفيل</th><th width="15%">الوثيقة</th><th width="20%">التاريخ</th>
-                            </tr>
-                        </thead>
-                        <tbody>${tRows}</tbody>
-                    </table>
-                </body>
-                </html>
-            `; 
-            
-            const pw = window.open('','','width=900,height=700'); 
-            pw.document.write(html); 
-            pw.document.close(); 
-            pw.focus(); 
-            setTimeout(() => { pw.print(); pw.close(); }, 500); 
-        };
-        
-        function getDashboardHtml() { 
-            const rT = (window.dashConfig && window.dashConfig.resetTimestamp) ? window.dashConfig.resetTimestamp : new Date(0).toISOString(); 
-            
-            // حل مشكلة اللوحة: تأكيد المقارنة كتواريخ فعلية (Date Objects) لضمان الدقة
-            const aP = window.workers.filter(w => w.createdAt && new Date(w.createdAt) >= new Date(rT)).length; 
-            const rL = window.renewals.filter(r => r.renewDate && new Date(r.renewDate) >= new Date(rT)); 
-            const tR = rL.length; 
-            const pct = aP > 0 ? Math.min(100, Math.round((tR/aP)*100)) : 0; 
-            
-            let lg = rL.length > 0 ? [...rL].sort((a,b) => new Date(b.renewDate||0) - new Date(a.renewDate||0)).map(r => `
-                <div class="text-[10px] text-slate-800 bg-white px-2 py-1.5 rounded-lg flex justify-between items-center border border-slate-200 mb-1 shadow-sm">
-                    <span class="font-bold text-[#25D366]">${(r.workerName||'').toString().split('|')[0]}</span>
-                    <span class="text-[9px] bg-slate-100 px-2 rounded-full text-slate-600 border border-slate-200">ك: ${r.sponsorName||'-'}</span>
-                </div>
-            `).join('') : `<div class="text-[10px] text-slate-500 text-center py-4 font-bold">لا توجد إنجازات مسجلة مؤخراً</div>`; 
-            
-            // اللوحة المنسدلة الجديدة: شريط أبيض بستروك أسود
-            return `
-                <details class="mb-8 rounded-3xl border-2 border-black bg-white overflow-hidden shadow-lg group">
-                    <summary class="p-4 cursor-pointer flex justify-center items-center outline-none bg-white">
-                        <h3 class="text-base font-black text-black">لوحة قياس الإنجاز</h3>
-                    </summary>
-                    <div class="p-5 border-t-2 border-black bg-slate-50 flex flex-col gap-4">
-                        <div class="grid grid-cols-3 gap-3 w-full">
-                            <div class="bg-white border-2 border-slate-200 p-3 rounded-2xl text-center shadow-sm">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">مسجل حديثاً</p>
-                                <p class="text-2xl font-black text-black">${aP}</p>
-                            </div>
-                            <div class="bg-white border-2 border-[#25D366] p-3 rounded-2xl text-center shadow-sm">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">تم تجديده</p>
-                                <p class="text-2xl font-black text-[#25D366]">${tR}</p>
-                            </div>
-                            <div class="bg-white border-2 border-amber-300 p-3 rounded-2xl text-center shadow-sm">
-                                <p class="text-[10px] text-slate-500 font-bold mb-1">نسبة الإنجاز</p>
-                                <p class="text-2xl font-black ${pct>=50?'text-[#25D366]':'text-amber-500'}">${pct}%</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap gap-2 justify-between items-center">
-                            <div class="flex gap-2">
-                                <input type="text" value="${window.dashConfig.manualStart||''}" onchange="window.updateDashText('start',this.value)" placeholder="من..." class="w-20 text-[10px] p-1.5 rounded-lg border-2 border-slate-200 text-black text-center font-bold outline-none focus:border-[#8B0000]">
-                                <input type="text" value="${window.dashConfig.manualEnd||''}" onchange="window.updateDashText('end',this.value)" placeholder="إلى..." class="w-20 text-[10px] p-1.5 rounded-lg border-2 border-slate-200 text-black text-center font-bold outline-none focus:border-[#8B0000]">
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="window.printDashboard()" class="bg-slate-200 text-slate-700 hover:bg-slate-300 px-3 py-1.5 rounded-xl text-[11px] font-black border border-slate-300 transition-colors">طباعة التقرير 🖨️</button>
-                                <button onclick="window.resetDashboard()" class="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-xl text-[11px] font-black border border-red-200 transition-colors">تصفير العداد</button>
-                            </div>
-                        </div>
-                        <div class="bg-slate-100 border border-slate-200 rounded-xl p-3 mt-2 max-h-40 overflow-y-auto custom-scrollbar">${lg}</div>
-                    </div>
-                </details>
-            `; 
-        }
-
-        // تفريغ الصور الذكي (OCR)
-        window.handleImageFile = async (e) => { 
-            const f = e.target.files[0]; 
-            if(f) { window.processImageForAI(f); e.target.value=''; } 
-        };
-        
         window.handlePaste = async (e) => { 
             const items = (e.clipboardData || e.originalEvent.clipboardData).items; 
             for(let i of items){ 
@@ -837,7 +669,7 @@
                         let c = 0; 
                         
                         for(let w of arr) { 
-                            // الحماية الفولاذية في حالة عدم وجود اسم
+                            // الحماية في حالة عدم وجود اسم
                             if(!w.workerName || w.workerName.toString().trim() === '') {
                                 w.workerName = 'عامل يحتاج تعديل | Needs Edit';
                             }
@@ -858,7 +690,7 @@
                             c++; 
                         } 
                         await batch.commit(); 
-                        Swal.fire('نجاح',`تم إضافة ${c} سجل بنجاح.`,`success`); 
+                        Swal.fire('تم بنجاح',`تم إضافة ${c} سجل بنجاح.`,`success`); 
                     }
                 }
             } catch(e) { 
@@ -981,20 +813,20 @@
                                     ${d.ws.map(w => renderCard(w)).join('')}
                                 </div>
                             </details>
-                    for(const[s,d] of Object.entries(grps)){
-                        const isC=d.ws.some(w=>w.contacted);
-                        html+=`<details class="break-inside-avoid mb-4 rounded-3xl border ${isUrg?'border-red-300 shadow-lg':'border-white/10 bg-white/5'} overflow-hidden group"><summary class="px-4 py-4 cursor-pointer flex justify-between items-center ${isUrg?'bg-red-50 text-red-900':'text-white hover:bg-white/10'} transition-all"><div class="flex items-center gap-3 overflow-hidden"><div class="w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center ${isUrg?'bg-red-200 text-red-600':'bg-white/20 text-white'}">💼</div><div class="truncate"><h4 class="text-sm font-black truncate">${s}</h4><p class="text-[10px] opacity-70" dir="ltr">${(d.phone||'بدون هاتف').toString()}</p></div></div><div class="flex items-center gap-1.5 flex-shrink-0">${isC?`<span class="bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">✓ تواصلنا</span>`:''}<button onclick="window.deleteSponsor(event,'${s}')" class="${isUrg?'bg-red-200 hover:bg-red-500 text-red-700 hover:text-white':'bg-white/10 hover:bg-red-500 text-white'} p-1 rounded-md transition" title="إبادة الكفيل">🗑️</button><span class="${isUrg?'bg-red-600':'bg-white/20'} text-white text-[11px] font-black px-2 py-1 rounded-full">${d.ws.length}</span></div></summary><div class="p-4 bg-black/10 flex flex-col gap-3 border-t ${isUrg?'border-red-100':'border-white/5'}">${d.ws.map(w=>renderCard(w)).join('')}</div></details>`;
-                    } return html+'</div>';
+                        `;
+                    } 
+                    return html + '</div>';
                 };
 
-                // التعديل الرابع (تابع): رفع الإنذارات الحرجة للأعلى ثم لوحة الإنجاز
+                // وضع لوحة الإنجاز المنسدلة في الأعلى والإنذارات تليها لتقليص المساحة
                 container.innerHTML = `
-                    ${uW.length>0?`<section class="mb-10"><h3 class="text-white font-black text-lg flex items-center gap-2 mb-5 px-2">🔴 إنذارات الإنتهاء الحرجة</h3>${renderGrp(uW,true)}</section>`:''}
+                    ${uW.length > 0 ? `<section class="mb-10"><h3 class="text-white font-black text-lg flex items-center gap-2 mb-5 px-2">🔴 إنذارات الإنتهاء الحرجة</h3>${renderGrp(uW, true)}</section>` : ''}
                     ${getDashboardHtml()}
-                    <section><h3 class="text-white font-black text-lg mb-5 opacity-95 px-2">📁 سجل الكفلاء الأساسي</h3>${sW.length>0?renderGrp(sW,false):`<div class="text-center py-10 border-2 border-dashed border-white/20 rounded-3xl bg-black/20 text-white/50 text-sm font-bold">لا توجد سجلات حالياً</div>`}</section>
+                    <section><h3 class="text-white font-black text-lg mb-5 opacity-95 px-2">📁 سجل الكفلاء الأساسي</h3>${sW.length > 0 ? renderGrp(sW, false) : `<div class="text-center py-10 border-2 border-dashed border-white/20 rounded-3xl bg-black/20 text-white/50 text-sm font-bold">لا توجد سجلات حالياً</div>`}</section>
                 `;
                 initFlatpickr();
                 
+                // إغلاق حالة التحميل بنجاح
                 window.updateSyncUI('connected');
                 
             } catch (error) {
@@ -1003,24 +835,25 @@
             }
         };
 
-        // التعديل الخامس: رأس التطبيق الأبيض بإطار أسود وبحث رصاصي فاتح بإطار أحمر واسم أحمر
         window.renderMainDashboard = function() {
             const app = document.getElementById('main-app');
-            const dOpts = [...new Set(window.workers.map(w=>(w.sponsorName||'').toString()).filter(s=>s&&s!=='بدون كفيل'))].map(s=>`<option value="${s}">`).join('');
+            const dOpts = [...new Set(window.workers.map(w => (w.sponsorName || '').toString()).filter(s => s && s !== 'بدون كفيل'))].map(s => `<option value="${s}">`).join('');
             
             app.innerHTML = `
                 <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+                    <!-- الرأس بالألوان المحدثة (مستطيل أبيض بإطار أسود داخلي واسم أحمر) -->
                     <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-5 bg-white p-5 rounded-[2rem] border-2 border-black shadow-xl">
                         <div class="flex items-center gap-4">
                             <div class="text-center md:text-right">
                                 <h1 class="text-3xl sm:text-4xl font-black text-[#8B0000]">مكتب مندوبك</h1>
                                 <div class="flex items-center gap-2 mt-1.5 justify-center md:justify-start">
-                                    <p class="text-[12px] font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">برنامج المتابعة والتذكير</p>
+                                    <p class="text-[12px] font-black text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">برنامج المتابعة والتذكير الذكي "عبدالرحمن"</p>
                                     <div id="sync-status-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">جاري المزامنة...</div>
                                 </div>
                             </div>
                         </div>
                         <div class="flex-1 max-w-lg w-full px-0 md:px-4">
+                            <!-- خانة البحث الرصاصية المحددة باللون الأحمر -->
                             <input type="search" id="searchInput" oninput="window.handleSearch(event)" placeholder="البحث الذكي (اسم، هاتف، مهنة)..." class="w-full py-3.5 pr-12 pl-5 bg-[#f3f4f6] border-2 border-[#8B0000] rounded-2xl text-sm font-bold text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/50 shadow-inner transition-all hover:bg-slate-200">
                         </div>
                         <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
